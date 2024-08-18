@@ -1,0 +1,16 @@
+# Default is to keep crlf line endings
+text=auto
+
+README.md text eol=crlf
+LICENSE text eol=crlf
+descrip.mms text eol=crlf
+makefile text eol=crlf
+*.c text eol=crlf linguist-language=C
+*.h text eol=crlf linguist-language=C
+*.y text eol=crlf
+*.txt text eol=crlf
+*.bin binary
+*.exe binary
+*.com text eol=crlf linguist-language=DIGITAL Command Language
+*.doc binary
+*.mar text eol=crlf linguist-language=Assembly

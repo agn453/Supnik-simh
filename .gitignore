@@ -30,6 +30,7 @@
 
 # Executables
 *.exe
+!sim/VAX/vmb.exe
 *.out
 *.app
 *.i*86
