@@ -152,7 +152,7 @@ DEVICE ch_dev = {
     &ch_description
   };
 
-int ch_checksum (CONST uint8 *p, int length)
+int ch_checksum (const uint8 *p, int length)
 {
   int i, sum = 0;
   for (i = 0; i < length; i += 2)
@@ -237,7 +237,7 @@ t_stat ch_transmit ()
   return SCPE_OK;
 }
 
-void ch_validate (CONST uint8 *p, int count)
+void ch_validate (const uint8 *p, int count)
 {
   int chksum;
   int size;
@@ -268,7 +268,7 @@ void ch_validate (CONST uint8 *p, int count)
 int ch_receive (void)
 {
   size_t count;
-  CONST uint8 *p;
+  const uint8 *p;
 
   tmxr_poll_rx (&ch_tmxr);
   if (tmxr_get_packet_ln (&ch_lines[0], &p, &count) != SCPE_OK) {

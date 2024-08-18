@@ -29,7 +29,7 @@
 
 #define SIM_MAJOR       3
 #define SIM_MINOR       12
-#define SIM_PATCH       5
+#define SIM_PATCH       6
 #define SIM_DELTA       0
 
 /* V3.12 revision history
@@ -38,6 +38,10 @@
    logic by Dave Bryan.
 
 patch   date            module(s) and fix(es)
+
+  6     17-Aug-2024     descrip.mms: Ethernet support, fix SDS build,
+                        and add Sigma, SCP: build on OpenVMS VAX,
+                        PDP11: Chaosnet fix, and Pcap-VMS (Tony Nicholson)
 
   5     16-July-2024    H316, Nova, PDP8, Sigma, SDS: bug fixes
                         PDP10, PDP11: bug fixes, Chaosnet support
@@ -175,7 +179,7 @@ patch   date            module(s) and fix(es)
                         vax_cpu.c
                         - added idle test for VMS 5.0/5.1 (Mark Pizzolato)
 
-/* V3.11 revision history
+   V3.11 revision history
 
    V3.11 incorporates SCP additions and extensions by Dave Bryan to support his
    HP simulators.

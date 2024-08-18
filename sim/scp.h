@@ -251,6 +251,10 @@ extern t_bool (*sim_vm_fprint_stopped) (FILE *st, t_stat reason);
 
 #if defined (__DECC) && defined (__VMS) && (defined (__VAX) || (__CRTL_VER <= 70311000))
 
+/* snprintf is missing in old DEC C (on VAX) */
+int sim_snprintf(char *str, size_t len, const char *fmt, ...);
+#define snprintf sim_snprintf
+
 #define VSNPRINTF(a,b,c,d)      vsprintf (a, c, d)
 #define STACKBUFSIZE            16384
 

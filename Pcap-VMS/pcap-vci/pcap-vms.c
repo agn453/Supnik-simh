@@ -17,6 +17,9 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
+ * X-6      Tony Nicholson      tony.nicholson@computer.org     16-Aug-2024
+ *          Added pcap_lib_version() routine
+ *
  * X-5      MB			Matt Burke			10-Jun-2011
  *	    Changed protocol type from 'IP' to 'DEC Customer Protocol'
  *
@@ -44,6 +47,9 @@
  * X1.0	    Ankan		Anders Ahgren			29-Nov-2002
  *	    Initial version.
  */
+
+#define PCAP_VERSION_STRING "Pcap-VMS X-6"
+
 // VMS Includes
 #include <errno.h>
 #include <ctype.h>                        /* Character type classification macros/routines */ 
@@ -497,3 +503,11 @@ int pcap_setfilter(pcap_t *p, struct bpf_program *fp)
 	    return (-1);
     return (0);
 }
+
+
+
+const char *pcap_lib_version(void)
+{
+    return (PCAP_VERSION_STRING);
+}
+

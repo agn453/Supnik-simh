@@ -5363,6 +5363,17 @@ if (sim_deb && (dptr->dctrl & dbits)) {
 #define vsnprintf _vsnprintf
 #endif
 #if defined (__DECC) && defined (__VMS) && (defined (__VAX) || (__CRTL_VER <= 70311000))
+/* snprintf is missing in old DEC C (on VAX) */
+int sim_snprintf(char *str, size_t len, const char *fmt, ...)
+{
+   va_list ap;
+   int n;
+
+   va_start(ap, fmt);
+   n = vsprintf(str, fmt, ap);
+   va_end(ap);
+   return n;
+}
 #define NO_vsnprintf
 #endif
 #if defined( NO_vsnprintf)

@@ -3,10 +3,12 @@
 # Modified By:  Mark Pizzolato / mark@infocomm.com
 #               Norman Lastovica / norman.lastovica@oracle.com
 #               Camiel Vanderhoeven / camiel@camicom.com
+#		Tony Nicholson / tony.nicholson@computer.org
 #
 # This MMS/MMK build script is used to compile the various simulators in
 # the SIMH package for OpenVMS using DEC C v6.0-001(AXP), v6.5-001(AXP),
-# HP C V7.3-009-48GBT (AXP), HP C V7.2-001 (IA64) and v6.4-005(VAX).
+# HP C V7.3-009-48GBT (AXP), HP C V7.2-001 (IA64), Compaq v6.4-005(VAX).
+# VSI C V7.4-002 (AXP) and V7.5-009 (x86_64).
 #
 # Notes:  On VAX, the PDP-10, Eclipse and IBM 7094 simulators will not be 
 #         built due to the fact that INT64 is required for these simulators.
@@ -34,6 +36,7 @@
 #            PDP11           Just Build The DEC PDP-11.
 #            PDP15           Just Build The DEC PDP-15.
 #            SDS             Just Build The SDS 940.
+#            SIGMA           Just Build The XDS SIGMA.
 #            VAX             Just Build The DEC VAX.
 #            VAX780          Just Build The DEC VAX780.
 #            CLEAN           Will Clean Files Back To Base Kit.
@@ -43,7 +46,7 @@
 #
 #        MMK/MACRO=(DEBUG=1)
 #
-# This will produce an executable named {Simulator}-{I64|VAX|AXP}-DBG.EXE
+# This will produce an executable named {Simulator}-{I64|VAX|AXP|x86}-DBG.EXE
 #
 # On AXP and IA64 the VMS PCAP components are built and used to provide 
 # network support for the VAX and PDP11 simulators.
@@ -105,6 +108,21 @@ CC_DEFS = "_LARGEFILE","SIM_ASYNCH_IO=1"
 .ENDIF
 .ENDIF
 
+.IFDEF MMSx86_64
+ALPHA_OR_IA64 = 1
+NONETWORK = 1
+CC_FLAGS = /PREF=ALL/ACCEPT=(noVAXC_KEYWORDS)
+.IFDEF NOASYNCH
+ARCH = x86-NOASYNCH-DBG
+CC_DEFS = "_LARGEFILE"
+LINK_DEBUG = /DEBUG/TRACEBACK
+.ELSE
+ARCH = x86-DBG
+CC_DEFS = "_LARGEFILE","SIM_ASYNCH_IO=1"
+LINK_DEBUG = /DEBUG/TRACEBACK/THREADS_ENABLE
+.ENDIF
+.ENDIF
+
 .IFDEF MMSVAX
 CC_FLAGS = $(CC_FLAGS)
 ARCH = VAX-DBG
@@ -141,6 +159,22 @@ CC_DEFS = "_LARGEFILE","SIM_ASYNCH_IO=1"
 .ENDIF
 .ENDIF
 
+.IFDEF MMSx86_64
+ALPHA_OR_IA64 = 1
+NONETWORK = 1
+CC_OPTIMIZE = /NOOPT
+CC_FLAGS = /PREF=ALL/ACCEPT=(noVAXC_KEYWORDS)
+.IFDEF NOASYNCH
+ARCH = x86-NOASYNCH
+CC_DEFS = "_LARGEFILE"
+LINK_DEBUG = /NODEBUG/NOTRACEBACK
+.ELSE
+ARCH = x86
+CC_DEFS = "_LARGEFILE","SIM_ASYNCH_IO=1"
+LINK_DEBUG = /NODEBUG/NOTRACEBACK/THREADS_ENABLE
+.ENDIF
+.ENDIF
+
 .IFDEF MMSVAX
 CC_OPTIMIZE = /OPTIMIZE
 CC_FLAGS = $(CC_FLAGS)
@@ -171,7 +205,8 @@ SIMH_LIB = $(LIB_DIR)SIMH-$(ARCH).OLB
 SIMH_SOURCE = $(SIMH_DIR)SIM_CONSOLE.C,$(SIMH_DIR)SIM_SOCK.C,\
               $(SIMH_DIR)SIM_TMXR.C,$(SIMH_DIR)SIM_ETHER.C,\
               $(SIMH_DIR)SIM_TAPE.C,$(SIMH_DIR)SIM_FIO.C,\
-              $(SIMH_DIR)SIM_TIMER.C,$(SIMH_DIR)SIM_SHMEM.C
+              $(SIMH_DIR)SIM_TIMER.C,$(SIMH_DIR)SIM_SHMEM.C,\
+              $(SIMH_DIR)SIM_CARD.C
 SIMH_MAIN = SCP.C
 .IFDEF ALPHA_OR_IA64
 SIMH_LIB64 = $(LIB_DIR)SIMH64-$(ARCH).OLB
@@ -205,7 +240,7 @@ PCAP_EXECLET = $(PCAP_VCI)
 PCAP_INC = ,$(PCAP_DIR)
 PCAP_LIBD = $(PCAP_LIB)
 PCAP_LIBR = ,$(PCAP_LIB)/LIB/SYSEXE
-PCAP_DEFS = ,"USE_NETWORK=1"
+PCAP_DEFS = ,"USE_NETWORK=1","HAVE_PCAP_NETWORK=1"
 PCAP_SIMH_INC = /INCL=($(PCAP_DIR))
 .ENDIF
 .ENDIF
@@ -220,7 +255,7 @@ PCAP_SIMH_INC = /INCL=($(PCAP_DIR))
   @ 'EXIT_ON_ERROR
   @ DEFINE/USER SYS$ERROR NLA0:
   @ DEFINE/USER SYS$OUTPUT CC_VERSION.DAT
-  @ CC/DECC/VERSION
+  @ CC/VERSION
   @ OPEN /READ VERSION CC_VERSION.DAT
   @ READ VERSION CC_VERSION
   @ CLOSE VERSION
@@ -479,8 +514,26 @@ SDS_LIB = $(LIB_DIR)SDS-$(ARCH).OLB
 SDS_SOURCE = $(SDS_DIR)SDS_CPU.C,$(SDS_DIR)SDS_DRM.C,$(SDS_DIR)SDS_DSK.C,\ 
              $(SDS_DIR)SDS_IO.C,$(SDS_DIR)SDS_LP.C,$(SDS_DIR)SDS_MT.C,\
              $(SDS_DIR)SDS_MUX.C,$(SDS_DIR)SDS_RAD.C,$(SDS_DIR)SDS_STDDEV.C,\
-             $(SDS_DIR)SDS_SYS.C
+             $(SDS_DIR)SDS_SYS.C,$(SDS_DIR)SDS_CP.C,$(SDS_DIR)SDS_CR.C
+CARD_DEFS = ,"USE_SIM_CARD"
 SDS_OPTIONS = /INCL=($(SIMH_DIR),$(SDS_DIR))/DEF=($(CC_DEFS))
+
+#
+# XDS Sigma
+#
+SIGMA_DIR = SYS$DISK:[.SIGMA]
+SIGMA_LIB = $(LIB_DIR)SIGMA-$(ARCH).OLB
+SIGMA_SOURCE = $(SIGMA_DIR)SIGMA_CPU.C,$(SIGMA_DIR)SIGMA_COC.C,\
+               $(SIGMA_DIR)SIGMA_CP.C,$(SIGMA_DIR)SIGMA_CIS.C,\
+               $(SIGMA_DIR)SIGMA_CR.C,$(SIGMA_DIR)SIGMA_DK.C,\
+               $(SIGMA_DIR)SIGMA_DP.C,$(SIGMA_DIR)SIGMA_FP.C,\
+               $(SIGMA_DIR)SIGMA_IO.C,$(SIGMA_DIR)SIGMA_LP.C,\
+               $(SIGMA_DIR)SIGMA_MAP.C,$(SIGMA_DIR)SIGMA_MT.C,\
+               $(SIGMA_DIR)SIGMA_PT.C,$(SIGMA_DIR)SIGMA_RAD.C,\
+               $(SIGMA_DIR)SIGMA_RTC.C,$(SIGMA_DIR)SIGMA_SYS.C,\
+               $(SIGMA_DIR)SIGMA_TT.C
+CARD_DEFS = ,"USE_SIM_CARD"
+SIGMA_OPTIONS = /INCL=($(SIMH_DIR),$(SIGMA_DIR))/DEF=($(CC_DEFS))
 
 #
 # Digital Equipment VAX Simulator Definitions.
@@ -558,7 +611,7 @@ I7094_OPTIONS = /INCL=($(SIMH_DIR),$(I7094_DIR))/DEF=($(CC_DEFS))
 .IFDEF ALPHA_OR_IA64
 ALL : ALTAIR ECLIPSE GRI LGP H316 I1401 I1620 ID16 \
       ID32 NOVA PDP1 PDP4 PDP7 PDP8 PDP9 PDP10 PDP11 PDP15 \
-      VAX VAX780 SDS I7094
+      VAX VAX780 SDS I7094 SIGMA
         $! No further actions necessary
 .ELSE
 #
@@ -566,7 +619,7 @@ ALL : ALTAIR ECLIPSE GRI LGP H316 I1401 I1620 ID16 \
 #
 ALL : ALTAIR GRI H316 I1401 I1620 ID16 ID32 \
       NOVA PDP1 PDP4 PDP7 PDP8 PDP9 PDP11 PDP15 VAX VAX780 \
-      SDS
+      SDS SIGMA
         $! No further actions necessary
 .ENDIF
 
@@ -592,7 +645,7 @@ $(SIMH_LIB) : $(SIMH_SOURCE)
         $!
         $! Building The $(SIMH_LIB) Library.
         $!
-        $ $(CC)/DEF=($(CC_DEFS)$(PCAP_DEFS))$(PCAP_SIMH_INC) -
+        $ $(CC)/DEF=($(CC_DEFS)$(PCAP_DEFS)$(CARD_DEFS))$(PCAP_SIMH_INC) -
                /OBJ=$(BLD_DIR) $(MMS$CHANGED_LIST)
         $ IF (F$SEARCH("$(MMS$TARGET)").EQS."") THEN -
              LIBRARY/CREATE $(MMS$TARGET)
@@ -872,6 +925,17 @@ $(SDS_LIB) : $(SDS_SOURCE)
         $! Building The $(SDS_LIB) Library.
         $!
         $ $(CC)$(SDS_OPTIONS) -
+               /OBJ=$(BLD_DIR) $(MMS$CHANGED_LIST)
+        $ IF (F$SEARCH("$(MMS$TARGET)").EQS."") THEN -
+             LIBRARY/CREATE $(MMS$TARGET)
+        $ LIBRARY/REPLACE $(MMS$TARGET) $(BLD_DIR)*.OBJ
+        $ DELETE/NOLOG/NOCONFIRM $(BLD_DIR)*.OBJ;*
+
+$(SIGMA_LIB) : $(SIGMA_SOURCE)
+        $!
+        $! Building The $(SIGMA_LIB) Library.
+        $!
+        $ $(CC)$(SIGMA_OPTIONS) -
                /OBJ=$(BLD_DIR) $(MMS$CHANGED_LIST)
         $ IF (F$SEARCH("$(MMS$TARGET)").EQS."") THEN -
              LIBRARY/CREATE $(MMS$TARGET)
@@ -1226,6 +1290,18 @@ $(BIN_DIR)SDS-$(ARCH).EXE : $(SIMH_MAIN) $(SIMH_LIB) $(SDS_LIB)
         $ $(CC)$(SDS_OPTIONS)/OBJ=$(BLD_DIR) SCP.C
         $ LINK $(LINK_DEBUG)/EXE=$(BIN_DIR)SDS-$(ARCH).EXE -
                  $(BLD_DIR)SCP.OBJ,$(SDS_LIB)/LIBRARY,$(SIMH_LIB)/LIBRARY
+        $ DELETE/NOLOG/NOCONFIRM $(BLD_DIR)*.OBJ;*
+
+SIGMA : $(BIN_DIR)SIGMA-$(ARCH).EXE
+        $! SIGMA done
+
+$(BIN_DIR)SIGMA-$(ARCH).EXE : $(SIMH_MAIN) $(SIMH_LIB) $(SIGMA_LIB)
+        $!
+        $! Building The $(BIN_DIR)SIGMA-$(ARCH).EXE Simulator.
+        $!
+        $ $(CC)$(SIGMA_OPTIONS)/OBJ=$(BLD_DIR) SCP.C
+        $ LINK $(LINK_DEBUG)/EXE=$(BIN_DIR)SIGMA-$(ARCH).EXE -
+                 $(BLD_DIR)SCP.OBJ,$(SIGMA_LIB)/LIBRARY,$(SIMH_LIB)/LIBRARY
         $ DELETE/NOLOG/NOCONFIRM $(BLD_DIR)*.OBJ;*
 
 VAX : $(BIN_DIR)VAX-$(ARCH).EXE

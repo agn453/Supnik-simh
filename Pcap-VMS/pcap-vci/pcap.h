@@ -216,6 +216,7 @@ void	bpf_dump(struct bpf_program *, int);
 
 #ifdef VMS
 int pcap_sendpacket(pcap_t *p, u_char *buf, int size);
+const char *pcap_lib_version(void);
 #endif
 
 #ifdef WIN32
