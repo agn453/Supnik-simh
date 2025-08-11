@@ -6,10 +6,12 @@ Bob Supnik's classic historic simulators - aka SimH V3.X [^1]
 This repository contains my updates to re-instate build capabilities
 under OpenVMS on VAX, Alpha, IA64 and x86_64.
 
-I've also added a modification to the PDP11 simulator to correct
+I've added a modification to the PDP11 simulator to correct
 MASSBUS controller clear vs rhwc register (as announced on the
 SIMH mailing list by Bob Supnik on Aug 1, 2025) - affecting
-sim/PDP11/pdp11_rh.c).
+sim/PDP11/pdp11_rh.c).  Also updated the PDP10 sources for 
+sim/PDP10/pdp10_rp.c and sim/PDP10/pdp10_tu.c to fix the same
+issue for the PDP10 simulator.
 
 Ethernet support via Pcap-VMS is currently available for OpenVMS
 Alpha and IA64 only for the PDP11, VAX and VAX780 simulators.

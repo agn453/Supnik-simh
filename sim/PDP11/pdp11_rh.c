@@ -1,6 +1,6 @@
 /* pdp11_rh.c: PDP-11 Massbus adapter simulator
 
-   Copyright (c) 2005-2023, Robert M Supnik
+   Copyright (c) 2005-2025, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    rha, rhb, rhc, rhd   RH11/RH70 Massbus adapter
 
+   31-Jul-25    RMS     Reset does not clear WC (John Bruner)
    12-May-23    RMS     Added fourth adapter
    25-Jul-22    RMS     Removed OPT_RH11, changed adapter type test
    02-Sep-13    RMS     Added third Massbus adapter, debug printouts
@@ -877,7 +878,7 @@ if (mb >= MBA_NUM)
     return SCPE_NOFNC;
 massbus[mb].cs1 = CS1_DONE;
 if ((sim_switches & SWMASK ('P')) !=0)
-    massbus[mb].wc = 0;
+    massbus[mb].wc = 0;                                 /* powerup only */
 massbus[mb].ba = 0;
 massbus[mb].cs2 = 0;
 massbus[mb].db = 0;

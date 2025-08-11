@@ -1,6 +1,6 @@
 /* pdp10_rp.c - RH11/RP04/05/06/07 RM02/03/05/80 "Massbus" disk controller
 
-   Copyright (c) 1993-2017, Robert M Supnik
+   Copyright (c) 1993-2025, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    rp           RH/RP/RM moving head disks
 
+   31-Jul-25    RMS     Reset does not clear RPWC
    13-Mar-17    RMS     Annotated fall through in switch
    17-Mar-13    RMS     Fixed incorrect copy/paste from pdp11_rp.c
    08-Dec-12    RMS     UNLOAD does not set ATTN (Mark Pizzolato)
@@ -1114,7 +1115,9 @@ UNIT *uptr;
 
 rpcs1 = CS1_DVA | CS1_DONE;
 rpcs2 = CS2_IR | CS2_OR;
-rpba = rpwc = 0;
+rpba = 0;
+if ((sim_switches & SWMASK ('P')) != 0)
+    rpwc = 0;                                           /* power up only*/
 rpiff = 0;                                              /* clear CSTB INTR */
 int_req = int_req & ~INT_RP;                            /* clear intr req */
 for (i = 0; i < RP_NUMDR; i++) {

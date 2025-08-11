@@ -1,6 +1,6 @@
 /* pdp10_tu.c - PDP-10 RH11/TM03/TU45 magnetic tape simulator
 
-   Copyright (c) 1993-2023, Robert M Supnik
+   Copyright (c) 1993-2025, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    tu           RH11/TM03/TU45 magtape
 
+   31-Jul-25    RMS     Reset does not clear TUWC
    06-Nov-23    RMS     Fixed BOT logic
    26-Mar-22    RMS     Added extra case points for new MTSE definitions
    07-Sep-20    RMS     Fixed || -> | in macro (Mark Pizzolato)
@@ -1167,13 +1168,14 @@ UNIT *uptr;
 
 tucs1 = CS1_DVA | CS1_DONE;
 tucs2 = CS2_IR | CS2_OR;
-tuba = 0;
-tuwc = 0;
+tuba = 0;                                   
 tufc = 0;
 tuer = 0;
 tufs = FS_FPR | FS_RDY;
-if (sim_switches & SWMASK ('P'))                        /* powerup? clr TC */
+if (sim_switches & SWMASK('P')) {                      /* powerup? clr TC, WC */
     tutc = 0;
+    tuwc = 0;
+    }
 else tutc = tutc & ~TC_FCS;                             /* no, clr <fcs> */
 tuiff = 0;                                              /* clear CSTB INTR */
 int_req = int_req & ~INT_TU;                            /* clear interrupt */
