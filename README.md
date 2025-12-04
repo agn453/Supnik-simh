@@ -23,7 +23,7 @@ https://vms.process.com/scripts/fileserv/fileserv.com?MMK
 
 * OpenVMS VAX V7.3 with Compaq C V6.4-005
 * VSI OpenVMS Alpha V8.4-2L1 with VSI C V7.4-002
-* VSI OpenMMS x86_64 V9.2-2 with VSI C x86-64 V7.5-009 (GEM 50XBR)
+* VSI OpenVMS x86_64 V9.2-2 with VSI C x86-64 V7.5-009 (GEM 50XBR)
 
 
 Tony Nicholson 11-Aug-2025
