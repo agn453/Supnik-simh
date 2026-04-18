@@ -1,6 +1,6 @@
 /* pdp11_tc.c: PDP-11 DECtape simulator
 
-   Copyright (c) 1993-2017, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    tc           TC11/TU56 DECtape
 
+   06-Apr-26    RMS     Call local detach routine, not detach_unit (Mark Pizzolato)
    15-Mar-17    RMS     Fixed to defer error interrupts (Paul Koning)
    14-Mar-17    RMS     Fixed spurious interrupt when setting GO (Paul Koning)
    04-Dec-16    RMS     Revised to model TCCM correctly (Josh Dersch)
@@ -816,7 +817,7 @@ if (mot & DTS_DIR)                                      /* update pos */
 else uptr->pos = uptr->pos + delta;
 if (((int32) uptr->pos < 0) ||
     ((int32) uptr->pos > (DTU_FWDEZ (uptr) + DT_EZLIN))) {
-    detach_unit (uptr);                                 /* off reel? */
+    dt_detach (uptr);                                   /* off reel? */
     uptr->STATE = uptr->pos = 0;
     unum = (int32) (uptr - dt_dev.units);
     if ((unum == CSR_GETUNIT (tccm)) && (CSR_GETFNC (tccm) != FNC_STOP))
@@ -901,7 +902,7 @@ switch (fnc) {                                          /* at speed, check fnc *
         break;
 
     case DTS_OFR:                                       /* off reel */
-        detach_unit (uptr);                             /* must be deselected */
+        dt_detach (uptr);                               /* must be deselected */
         uptr->STATE = uptr->pos = 0;                    /* no visible action */
         break;
 

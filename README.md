@@ -13,6 +13,10 @@ sim/PDP11/pdp11_rh.c).  Also updated the PDP10 sources for
 sim/PDP10/pdp10_rp.c and sim/PDP10/pdp10_tu.c to fix the same
 issue for the PDP10 simulator.
 
+The PDP-11 DECtape TC11/TU56 simulator routine (sim/PDP11/pdp11_tc.c)
+should be using local detach routine and not detach_unit() - from
+Bob Supnik's Apr 6, 2026 update.
+
 Ethernet support via Pcap-VMS is currently available for OpenVMS
 Alpha and IA64 only for the PDP11, VAX and VAX780 simulators.
 
@@ -26,4 +30,4 @@ https://vms.process.com/scripts/fileserv/fileserv.com?MMK
 * VSI OpenVMS x86_64 V9.2-2 with VSI C x86-64 V7.5-009 (GEM 50XBR)
 
 
-Tony Nicholson 11-Aug-2025
+Tony Nicholson 19-Apr-2026
