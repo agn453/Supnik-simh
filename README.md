@@ -17,6 +17,10 @@ The PDP-11 DECtape TC11/TU56 simulator routine (sim/PDP11/pdp11_tc.c)
 should be using local detach routine and not detach_unit() - from
 Bob Supnik's Apr 6, 2026 update.
 
+Fix parse_sim() to properly do the default address increment as
+mentioned in Bob Supnik's posting to the SIMH mailing list on
+Apr 18, 2026 (affecting sim/PDP10/pdp10_sys.c).
+
 Ethernet support via Pcap-VMS is currently available for OpenVMS
 Alpha and IA64 only for the PDP11, VAX and VAX780 simulators.
 

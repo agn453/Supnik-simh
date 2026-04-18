@@ -882,34 +882,30 @@ t_value ac, dev;
 t_stat r;
 char gbuf[CBUFSIZE];
 
-while (isspace (*cptr)) cptr++;
-for (i = 0; i < 6; i++) {
-    if (cptr[i] == 0) {
-        for (j = i + 1; j <= 6; j++) cptr[j] = 0;
-        break;
-        }
-    }
+val[0] = 0;
+while (isspace (*cptr))                                 /* remove leading spc */
+    cptr++;
+if (*cptr == 0)                                         /* nothing left? */
+    return SCPE_ARG;
+
 if ((sw & SWMASK ('A')) || ((*cptr == '\'') && cptr++)) { /* ASCII char? */
-    if (cptr[0] == 0)                                   /* must have 1 char */
-        return SCPE_ARG;
     val[0] = (t_value) cptr[0];
     return SCPE_OK;
     }
 if ((sw & SWMASK ('C')) || ((*cptr == '"') && cptr++)) { /* sixbit string? */
-    if (cptr[0] == 0)                                   /* must have 1 char */
-        return SCPE_ARG;
-    for (i = 0; i < 6; i++) {
+    for (i = j = 0; i < 6; i++) {
         val[0] = (val[0] << 6);
-        if (cptr[i]) val[0] = val[0] |
-            ((t_value) ((cptr[i] + 040) & 077));
+        if (cptr[j] != 0)
+            val[0] = val[0] | ((t_value)((cptr[j++] + 040) & 077));
         }
     return SCPE_OK;
     }
 if ((sw & SWMASK ('P')) || ((*cptr == '#') && cptr++)) { /* packed string? */
-    if (cptr[0] == 0)                                   /* must have 1 char */
-        return SCPE_ARG;
-    for (i = 0; i < 5; i++)
-        val[0] = (val[0] << 7) | ((t_value) cptr[i]);
+    for (i = j = 0; i < 5; i++) {
+        val[0] = val[0] << 7;
+        if (cptr[j] != 0) 
+            val[0] = val[0] | ((t_value)cptr[j++]);
+        }
     val[0] = val[0] << 1;
     return SCPE_OK;
     }
