@@ -21,6 +21,11 @@ Fix parse_sim() to properly do the default address increment as
 mentioned in Bob Supnik's posting to the SIMH mailing list on
 Apr 18, 2026 (affecting sim/PDP10/pdp10_sys.c).
 
+Also, included the update to sim/PDP18B/pdp18_lp.c from Bob Supnik's
+Jul 1, 2026 patch to add a 1000 instruction delay on a type 647 line
+printer initialization before the LPCB is actioned (enough time
+for the diagnostic to progress).
+
 Ethernet support via Pcap-VMS is currently available for OpenVMS
 Alpha and IA64 only for the PDP11, VAX and VAX780 simulators.
 
@@ -34,4 +39,4 @@ https://vms.process.com/scripts/fileserv/fileserv.com?MMK
 * VSI OpenVMS x86_64 V9.2-2 with VSI C x86-64 V7.5-009 (GEM 50XBR)
 
 
-Tony Nicholson 19-Apr-2026
+Tony Nicholson 03-Jul-2026
