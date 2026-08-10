@@ -401,7 +401,7 @@ return val;
         status  =       ok, or connection lost
 */
 
-t_stat tmxr_get_packet_ln (TMLN *lp, const uint8 **pbuf, size_t *psize)
+t_stat tmxr_get_packet_ln (TMLN *lp, CONST uint8 **pbuf, size_t *psize)
 {
 int32 c;
 static uint8 buf[TMXR_MAXBUF];
@@ -635,7 +635,7 @@ return SCPE_STALL;                                      /* char not sent */
         status  =       ok, or connection lost
 */
 
-t_stat tmxr_put_packet_ln (TMLN *lp, const uint8 *buf, size_t size)
+t_stat tmxr_put_packet_ln (TMLN *lp, CONST uint8 *buf, size_t size)
 {
 size_t i;
 
