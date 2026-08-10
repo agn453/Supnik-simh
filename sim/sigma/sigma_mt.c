@@ -1,6 +1,6 @@
 /* sigma_mt.c: Sigma 732X 9-track magnetic tape
 
-   Copyright (c) 2007-2024, Robert M. Supnik
+   Copyright (c) 2007-2025, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    mt           7320 and 7322/7323 magnetic tape
 
+   30-Jan-25    RMS     Added attention interrupt (Ken Rector)
    17-Feb-24    RMS     Zero delay from SIO to INIT state (Ken Rector)
    11-Feb-24    RMS     Report non-operational if not attached (Ken Rector)
    01-Feb-24    RMS     Fixed nx unit test (Ken Rector)
@@ -112,6 +113,8 @@ int32 mt_rwtime = 10000;                                /* rewind latency */
 int32 mt_ctime = 100;                                   /* command latency */
 int32 mt_time = 10;                                     /* record latency */
 uint32 mt_rwi = 0;                                      /* rewind interrupts */
+uint32 mt_atn = 0;                                      /* attention interrupts */
+t_mtrlnt mt_bptr;
 t_mtrlnt mt_bptr;
 t_mtrlnt mt_blim;
 uint8 mt_xb[MT_MAXFR];                                  /* transfer buffer */
@@ -152,6 +155,8 @@ t_stat mt_map_err (UNIT *uptr, t_stat r);
 int32 mt_clr_int (uint32 dva);
 void mt_set_rwi (uint32 un);
 void mt_clr_rwi (uint32 un);
+void mt_set_atn (uint32 un);
+void mt_clr_atn (uint32 un);
 
 /* MT data structures
 
@@ -631,6 +636,10 @@ for (iu = 0; iu < MT_NUMDR; iu++) {                     /* rewind int? */
         mt_clr_rwi ((uint32) iu);
         return (iu | MTAI_INT);
         }
+    if (mt_atn & (1u << iu)) {                          /* attention int? */
+        mt_clr_atn ((uint32) iu);
+        return (iu | MTAI_INT);
+        }
     }
 return 0;
 }
@@ -644,12 +653,33 @@ chan_set_dvi (mt_dib.dva);                              /* set INP */
 return;
 }
 
+/* Set attention interrupt */
+
+void mt_set_atn (uint32 un)
+{
+mt_atn |= (1u << un);
+chan_set_dvi (mt_dib.dva);                              /* set INP */
+return;
+}
+
 /* Clear rewind interrupt */
 
 void mt_clr_rwi (uint32 un)
 {
 mt_rwi &= ~(1u << un);                                  /* clear */
 if (mt_rwi != 0)                                        /* more? */
+    chan_set_dvi (mt_dib.dva);
+else if (chan_chk_chi (mt_dib.dva) < 0)                 /* any int? */
+    chan_clr_chi (mt_dib.dva);                          /* clr INP */
+return;
+}
+
+/* clear attention interrupt */
+
+void mt_clr_atn (uint32 un)
+{
+mt_atn &= ~(1u << un);
+if (mt_atn != 0)                                        /* more? */
     chan_set_dvi (mt_dib.dva);
 else if (chan_chk_chi (mt_dib.dva) < 0)                 /* any int? */
     chan_clr_chi (mt_dib.dva);                          /* clr INP */
@@ -684,11 +714,14 @@ return SCPE_OK;
 t_stat mt_attach (UNIT *uptr, CONST char *cptr)
 {
 t_stat r;
+uint32 un = uptr - mt_unit;
 
 r = sim_tape_attach (uptr, cptr);
 if (r != SCPE_OK)
     return r;
 uptr->UST = MTDV_BOT;
+if (sim_switches & SWMASK('A'))
+    mt_set_atn (un);
 return r;
 }
 

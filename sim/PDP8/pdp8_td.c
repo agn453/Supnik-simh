@@ -1,6 +1,6 @@
 /* pdp8_td.c: PDP-8 simple DECtape controller (TD8E) simulator
 
-   Copyright (c) 1993-2013, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -28,6 +28,7 @@
 
    td           TD8E/TU56 DECtape
 
+   06-Apr-26    RMS     Call local detach routine, not detach_unit (Mark Pizzolato)
    17-Sep-13    RMS     Changed to use central set_bootpc routine
    23-Mar-11    RMS     Fixed SDLC to clear AC (from Dave Gesswein)
    23-Jun-06    RMS     Fixed switch conflict in ATTACH
@@ -443,7 +444,7 @@ if (uptr->STATE & STA_DIR)                              /* update pos */
 else uptr->pos = uptr->pos + delta;
 if (((int32) uptr->pos < 0) ||
     ((int32) uptr->pos > (DTU_FWDEZ (uptr) + DT_EZLIN))) {
-    detach_unit (uptr);                                 /* off reel */
+    td_detach (uptr);                                   /* off reel */
     sim_cancel (uptr);                                  /* no timing pulses */
     return TRUE;
     }
@@ -500,7 +501,7 @@ switch (mot) {                                          /* case on motion */
         uptr->LASTT = sim_grtime ();                    /* save time */
         if (((int32) uptr->pos < 0) ||                  /* off reel? */
            (uptr->pos >= (((uint32) DTU_FWDEZ (uptr)) + DT_EZLIN))) {
-            detach_unit (uptr);
+            td_detach (uptr);
             return IORETURN (td_stopoffr, STOP_DTOFF);
             }
         break;                                          /* check function */

@@ -1,6 +1,6 @@
 /* pdp11_cpumod.h: PDP-11 CPU model definitions
 
-   Copyright (c) 2004-2022, Robert M Supnik
+   Copyright (c) 2004-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,8 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   11-Feb-26    RMS     Added STKLIM reg as settable option to 11/40
+   01-Feb-26    RMS     Added EIS as settable option to 11/40
    19-Aug-21    RMS     Added MMU as settable option to 11/23, 11/40, 11/45
    30-Dec-15    RMS     Added 11/03, 11/23 BEVENT disable
    22-Apr-08    RMS     Added 11/70 MBRK register
@@ -70,7 +72,7 @@
 #define MM0_1134        0160557
 
 #define SOP_1140        (BUS_U|OPT_EIS|OPT_MMU)
-#define OPT_1140        (OPT_FIS|OPT_MMU)
+#define OPT_1140        (OPT_EIS|OPT_FIS|OPT_MMU|OPT_STKLR)
 #define PSW_1140        0170377
 #define PAR_1140        0007777
 #define PDR_1140        0077516
@@ -84,7 +86,7 @@
 #define MM0_1144        0160557
 #define MM3_1144        0000077
 
-#define SOP_1145        (BUS_U|OPT_EIS|OPT_FPP|OPT_MMU)
+#define SOP_1145        (BUS_U|OPT_EIS|OPT_FPP|OPT_MMU|OPT_STKLR)
 #define OPT_1145        (OPT_FPP|OPT_MMU)
 #define PSW_1145        0174377
 #define PAR_1145        0007777
@@ -92,14 +94,14 @@
 #define MM0_1145        0171777
 #define MM3_1145        0000007
 
-#define SOP_1160        (BUS_U|OPT_EIS|OPT_FPP|OPT_MMU)
+#define SOP_1160        (BUS_U|OPT_EIS|OPT_FPP|OPT_MMU|OPT_STKLR)
 #define OPT_1160        0
 #define PSW_1160        0170377
 #define PAR_1160        0007777
 #define PDR_1160        0077516
 #define MM0_1160        0160557
 
-#define SOP_1170        (BUS_U|OPT_EIS|OPT_FPP|OPT_MMU|OPT_UBM)
+#define SOP_1170        (BUS_U|OPT_EIS|OPT_FPP|OPT_MMU|OPT_UBM|OPT_STKLR)
 #define OPT_1170        (OPT_FPP)
 #define PSW_1170        0174377
 #define PAR_1170        0177777

@@ -1,6 +1,6 @@
 /* pdp8_dt.c: PDP-8 DECtape simulator
 
-   Copyright (c) 1993-2020, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    dt           TC08/TU56 DECtape
 
+   06-Apr-26    RMS     Call local detach routine, not detach_unit (Mark Pizzolato)
    03-May-21    RMS     Fixed bug if read overwrites WC memory location
    01-Jul-20    RMS     Fixed comments in bootstrap (Bernhard Baehr)
    15-Mar-17    RMS     Fixed dt_seterr to clear successor states
@@ -683,7 +684,7 @@ if (mot & DTS_DIR)                                      /* update pos */
 else uptr->pos = uptr->pos + delta;
 if (((int32) uptr->pos < 0) ||
     ((int32) uptr->pos > (DTU_FWDEZ (uptr) + DT_EZLIN))) {
-    detach_unit (uptr);                                 /* off reel? */
+    dt_detach (uptr);                                   /* off reel? */
     uptr->STATE = uptr->pos = 0;
     unum = (int32) (uptr - dt_dev.units);
     if (unum == DTA_GETUNIT (dtsa))                     /* if selected, */
@@ -772,7 +773,7 @@ switch (fnc) {                                          /* at speed, check fnc *
         break;
 
     case DTS_OFR:                                       /* off reel */
-        detach_unit (uptr);                             /* must be deselected */
+        dt_detach (uptr);                               /* must be deselected */
         uptr->STATE = uptr->pos = 0;                    /* no visible action */
         break;
 

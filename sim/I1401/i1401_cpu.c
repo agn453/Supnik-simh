@@ -1,6 +1,6 @@
 /* i1401_cpu.c: IBM 1401 CPU simulator
 
-   Copyright (c) 1993-2021, Robert M. Supnik
+   Copyright (c) 1993-2026, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,9 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   18-May-26    RMS     Changed conv_old from t_bool to uint32
+   05-Dec-24    RMS     Fixed history print of endless H (Van Snyder)
+   26-Aug-24    RMS     Added @ as IO address indicator (Van Synder)
    08-Jun-21    RMS     Added max value to address registers
    13-Mar-17    RMS     Fixed MTF length checking (COVERITY)
    30-Jan-15    RMS     Fixed treatment of overflow (Ken Shirriff)
@@ -206,7 +209,7 @@ int32 iochk = 0;                                        /* I/O check stop */
 int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
-t_bool conv_old = 0;                                    /* old conversions */
+int32 conv_old = 0;                                     /* old conversions */
 
 extern int32 sim_emax;
 
@@ -603,7 +606,7 @@ while (reason == 0) {                                   /* loop until halted */
         goto CHECK_LENGTH;
     D = ioind = t;                                      /* could be D char, % */
     AS = hun_table[t];                                  /* could be A addr */
-    PP (IS);                                            /* if %xy, BA is set */
+    PP (IS);                                            /* if %xy or @xy, BA is set */
 
     if ((t = M[IS]) & WM) {                             /* I-2: WM? 2 char inst */
         AS = AS | BA;                                   /* ASTAR bad */
@@ -626,7 +629,8 @@ while (reason == 0) {                                   /* loop until halted */
         unit = 0;
     AS = AS + one_table[t];                             /* finish A addr */
     xa = (AS >> V_INDEX) & M_INDEX;                     /* get index reg */
-    if (xa && (ioind != BCD_PERCNT) && (cpu_unit.flags & XSA)) { /* indexed? */
+    if (xa && (ioind != BCD_PERCNT) &&
+            (ioind != BCD_ATSIGN) && (cpu_unit.flags & XSA)) { /* indexed? */
         AS = AS + hun_table[M[xa] & CHAR] + ten_table[M[xa + 1] & CHAR] +
             one_table[M[xa + 2] & CHAR];
         AS = (AS & INDEXMASK) % MAXMEMSIZE;
@@ -728,7 +732,8 @@ CHECK_LENGTH:
 */
 
     case OP_MCW:                                        /* move char */
-        if ((ilnt >= 4) && (ioind == BCD_PERCNT)) {     /* I/O form? */
+        if ((ilnt >= 4) &&                              /* I/O form? */
+            ((ioind == BCD_PERCNT) || (ioind ==BCD_ATSIGN))) {
             reason = iodisp (dev, unit, MD_NORM, D);    /* dispatch I/O */
             break;
             }
@@ -745,7 +750,8 @@ CHECK_LENGTH:
         break;
 
     case OP_LCA:                                        /* load char */
-        if ((ilnt >= 4) && (ioind == BCD_PERCNT)) {     /* I/O form? */
+        if ((ilnt >= 4) &&                              /* I/O form? */
+            ((ioind == BCD_PERCNT) || (ioind == BCD_ATSIGN))) {
             reason = iodisp (dev, unit, MD_WM, D);
             break;
             }
@@ -1161,7 +1167,7 @@ CHECK_LENGTH:
             reason = STOP_INVL;
             break;
             }
-      if (ioind != BCD_PERCNT) {                        /* valid dev addr? */
+      if ((ioind != BCD_PERCNT) && (ioind != BCD_ATSIGN)) { /* valid dev addr? */
             reason = STOP_INVA;
             break;
             }
@@ -1936,9 +1942,9 @@ for (k = 0; k < lnt; k++) {                             /* print specified */
     h = &hst[(++di) % hst_lnt];                         /* entry pointer */
     if (h->ilnt) {                                      /* instruction? */
         fprintf (st, "%05d  ", h->is);
-        for (i = 0; i < h->ilnt; i++)
+        for (i = 0; (i < MAX_L) && (i < h->ilnt); i++)
             sim_eval[i] = h->inst[i];
-        sim_eval[h->ilnt] = WM;
+        sim_eval[(h->ilnt < MAX_L)? h->ilnt: (MAX_L - 1)] = WM;
         if ((fprint_sym (st, h->is, sim_eval, &cpu_unit, SWMASK ('M'))) > 0) {
             fprintf (st, "(undefined)");
             for (i = 0; i < h->ilnt; i++)
@@ -1962,7 +1968,7 @@ return SCPE_OK;
 
 t_stat cpu_show_conv (FILE *st, UNIT *uptr, int32 val, void *desc)
 {
-if (conv_old)
+if (conv_old != 0)
     fputs ("Old (pre-3.5-1) conversions\n", st);
 else fputs ("New conversions\n", st);
 return SCPE_OK;

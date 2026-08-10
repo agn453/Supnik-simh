@@ -1,6 +1,6 @@
 /* pdp11_io_lib.c: Unibus/Qbus common support routines
 
-   Copyright (c) 1993-2017, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -22,6 +22,8 @@
    Except as contained in this notice, the name of Robert M Supnik shall not be
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
+
+   12-Feb-26    RMS     Added DH11 to autoconfigure table
 */
 
 #if defined (VM_PDP10)                                  /* PDP10 version */
@@ -377,7 +379,7 @@ AUTO_CON auto_tab[] = {
     { { "DLI" }, DLX_LINES, 2, 0, 8, { 0 } },           /* KL11/DL11/DLV11 - fx CSRs */
     { { NULL }, 1, 2, 0, 8, { 0 } },                    /* DLV11J - fx CSRs */
     { { NULL }, 1, 2, 8, 8 },                           /* DJ11 */
-    { { NULL }, 1, 2, 16, 8 },                          /* DH11 */
+    { { "DH" }, 1, 2, 16, 8 },                          /* DH11 */
     { { NULL }, 1, 2, 8, 8 },                           /* DQ11 */
     { { NULL }, 1, 2, 8, 8 },                           /* DU11 */
     { { NULL }, 1, 2, 8, 8 },                           /* DUP11 */

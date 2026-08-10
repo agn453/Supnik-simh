@@ -1,6 +1,6 @@
 /* i1401_cd.c: IBM 1402 card reader/punch
 
-   Copyright (c) 1993-2021, Robert M. Supnik
+   Copyright (c) 1993-2026, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -35,6 +35,7 @@
    Cards are represented as ASCII text streams terminated by newlines.
    This allows cards to be created and edited as normal files.
 
+   26-May-26    RMS     Fixed incomplete logical expression
    09-Jun-21    RMS     Removed use of ftell on output for pipe compatibility
    09-Mar-17    RMS     Protect character conversions from gargage files (COVERITY)
    05-May-16    RMS     Fixed calling sequence inconsistency (Mark Pizzolato)
@@ -325,7 +326,7 @@ t_stat r;
 r = cdp_npr (NULL, 0, NULL, NULL);                      /* write card */
 if (r != SCPE_OK)
     return r;
-use_h = cdp_unit.flags & UNIT_PCH;
+use_h = (cdp_unit.flags & UNIT_PCH) != 0;
 ind[IN_PNCH] = s4sel = s8sel = 0;                       /* clear flags */
 cbn = ((ilnt == 2) || (ilnt == 5)) && (mod == BCD_C);   /* col binary? */
 

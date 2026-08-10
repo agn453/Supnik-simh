@@ -1,6 +1,6 @@
 /* sigma_cis.c: Sigma decimal instructions
 
-   Copyright (c) 2007-2018, Robert M Supnik
+   Copyright (c) 2007-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -27,6 +27,7 @@
 
    1. On the Sigma 9, in ASCII mode, is an ASCII blank used in EBS?
 
+   18-May-2026  RMS     Corrected declaration in GenLshift
    02-Jun-2018  RMS     Fixed unsigned < 0 in decimal compare (Mark Pizzolato)
 */
 
@@ -810,7 +811,7 @@ return;
 
 t_bool GenLshift (dstr_t *dsrc, uint32 cnt)
 {
-t_bool i, c, sc, sc1;
+uint32 i, c, sc, sc1;
 
 c = 0;
 sc = cnt / 8;

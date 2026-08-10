@@ -1,6 +1,6 @@
 /* s3_cpu.c: IBM System/3 CPU simulator
 
-   Copyright (c) 2001-2012, Charles E. Owen
+   Copyright (c) 2001-2026, Charles E. Owen
    HPL & SLC instruction code Copyright (c) 2001 by Henk Stegeman
    Decimal Arithmetic Copyright (c) 2000 by Roger Bowler
 
@@ -29,6 +29,7 @@
 
    cpu          System/3 (models 10 and 15)  central processor
 
+   30-Jun-26    RMS     Fixed bug in store_decimal routine (W Carlborg)
    19-Mar-12    RMS     Changed int to int32 in declarations (Mark Pizzolato)
 
    The IBM System/3 was a popular small-business computing system introduced
@@ -1738,7 +1739,7 @@ int     i, j, a;                        /* Array subscripts          */
     }
     if (sign == -1) {
         PutMem(addr, (GetMem(addr) & 0x0f));
-        PutMem(addr, (GetMem(addr) | 0xf0)); 
+        PutMem(addr, (GetMem(addr) | 0xd0)); 
     }
     
 }   /* end function store_decimal */

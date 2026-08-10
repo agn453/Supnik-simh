@@ -25,6 +25,7 @@
 
    coc          7611 communications multiplexor
 
+   21-Oct-24    RMS     Receive WD returns CC=0 on disconnect (Ken Rector)
    17-Feb-24    RMS     Zero delay from SIO to INIT state (Ken Rector)
                         Detect and UEN on 0xFF order
    15-Dec-22    RMS     Moved SIO int pending test to devices
@@ -403,7 +404,11 @@ else {                                                  /* receive */
         }
     if (mux_sta[ln] & MUXL_RBP)                         /* break pending? */
         CC = CC3|CC4;
-    else CC = mux_ldsc[ln].rcve? CC4: CC3;
+    else {
+        if (mux_ldsc[ln].conn)                          /* connected? */
+            CC = mux_ldsc[ln].rcve? CC4 : CC3;          /* set correct CC */
+        else CC = 0;                                    /* no, CC = 0 */
+        }
     }
 return 0;
 }    

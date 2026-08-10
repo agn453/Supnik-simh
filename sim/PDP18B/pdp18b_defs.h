@@ -1,6 +1,6 @@
 /* pdp18b_defs.h: 18b PDP simulator definitions
 
-   Copyright (c) 1993-2016, Robert M Supnik
+   Copyright (c) 1993-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   11-Aug-24    RMS     Added DC01EB support
    17-Mar-16    PLB     Added GRAPHICS-2 support for PDP-7 UNIX
    10-Mar-16    RMS     Added 3-cycle databreak set/show routines
    26-Feb-16    RMS     Added RB09 to PDP-7 for Unix "v0" and RM09 to PDP-9
@@ -166,6 +167,7 @@
 #define TC02            0                               /* DECtape */
 #define TTY1            16                              /* second Teletype(s) */
 #define UC15            0                               /* UC15 */
+#define DC01EB          0                               /* DC01EB */
 #define BRMASK          0377400                         /* bounds mask */
 #define BRMASK_XVM      0777400                         /* bounds mask, XVM */
 #endif
@@ -280,6 +282,10 @@ typedef struct {
 #define DEV_PTP         002                             /* paper tape punch */
 #define DEV_TTI         003                             /* console input */
 #define DEV_TTO         004                             /* console output */
+#define DEV_DC0         030                             /* DC01EB #0 */
+// #define DEV_DC1         031                             /* DC01EB #1 */
+// #define DEV_DC2         032                             /* DC01EB #2 */
+// #define DEV_DC3         033                             /* DC01EB #3 */
 #define DEV_TTI1        041                             /* extra terminals */
 #define DEV_TTO1        040
 #define DEV_DRM         060                             /* drum */
@@ -347,10 +353,10 @@ typedef struct {
         25      plotter                 1       PDP-15 only
         26      -
         27      -
-        30      -
-        31      -
-        32      -
-        33      -
+        30      DC01EB #0               3       PDP-15 only
+        31      DC01EB #1               3       PDP-15 only
+        32      DC01EB #2               3       PDP-15 only
+        33      DC01EB #3               3       PDP-15 only
         34      LT15 TTO                3       PDP-15 only
         35      LT15 TTI                3       PDP-15 only
         36      -
@@ -437,21 +443,41 @@ typedef struct {
 #define ACH_PTR         050
 #define ACH_LPT         056
 
-/* API level 3 */
+/* API level 3
+
+   DC01EB's must be assigned to consecutive interrupt flags
+   on the same API level. The standard macros cannot be used.
+*/
 
 #define INT_V_CLK       0                               /* clock */
 #define INT_V_TTI1      1                               /* LT15 keyboard */
 #define INT_V_TTO1      2                               /* LT15 output */
+#define INT_V_DC0       3                               /* DC01EB #0 */
+// #define INT_V_DC1       4                               /* DC01EB #1 */
+// #define INT_V_DC2       5                               /* DC01EB #2 */
+// #define INT_V_DC3       6                               /* DC01EB #3 */
 
 #define INT_CLK         (1 << INT_V_CLK)
 #define INT_TTI1        (1 << INT_V_TTI1)
 #define INT_TTO1        (1 << INT_V_TTO1)
+#define INT_DC0         (1 << INT_V_DC0)
+// #define INT_DC1         (1 << INT_V_DC1)
+// #define INT_DC2         (1 << INT_V_DC2)
+// #define INT_DC3         (1 << INT_V_DC3)
 
 #define API_CLK         3
 #define API_TTI1        3
 #define API_TTO1        3
+#define API_DC0         3
+// #define API_DC1         3
+// #define API_DC2         3
+// #define API_DC3         3
 
 #define ACH_CLK         051
+#define ACH_DC0         070
+#define ACH_DC1         071
+#define ACH_DC2         072
+#define ACH_DC3         073
 #define ACH_TTI1        075
 #define ACH_TTO1        074
 

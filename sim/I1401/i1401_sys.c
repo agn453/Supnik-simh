@@ -1,6 +1,6 @@
 /* i1401_sys.c: IBM 1401 simulator interface
 
-   Copyright (c) 1993-2017, Robert M. Supnik
+   Copyright (c) 1993-2026, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,9 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   26-May-26    RMS     Changed conv_old to int32
+   09-Dec-24    RMS     Added -Z to display address (Van Snyder)
+   26-Aug-24    RMS     Added @ IO addressing (Van Snyder)
    13-Mar-17    RMS     Fixed possible dull dereference (COVERITY)
    25-Mar-14    RMS     Fixed d character printout (Van Snyder)
    25-Mar-12    RMS     Fixed && -> & in test (Peter Schorn)
@@ -56,7 +59,7 @@ extern char bcd_to_ascii_old[64], bcd_to_ascii_a[64], bcd_to_ascii_h[64];
 extern int32 store_addr_h (int32 addr);
 extern int32 store_addr_t (int32 addr);
 extern int32 store_addr_u (int32 addr);
-extern t_bool conv_old;
+extern int32 conv_old;
 
 /* SCP data structures and interface routines
 
@@ -203,7 +206,7 @@ return;
 t_stat dcw (FILE *of, int32 op, t_value *val, int32 sw)
 {
 int32 i;
-t_bool use_h = sw & SWMASK ('F');
+t_bool use_h = (sw & SWMASK ('F')) != 0;
 
 fprintf (of, "DCW @%c", bcd2ascii (op, use_h));         /* assume it's data */
 for (i = 1; i < sim_emax; i++) {
@@ -235,7 +238,7 @@ t_stat fprint_sym (FILE *of, t_addr addr, t_value *val,
 {
 int32 op, flags, ilnt, i, t;
 int32 wmch = conv_old? '~': '`';
-t_bool use_h = sw & SWMASK ('F');
+t_bool use_h = (sw & SWMASK ('F')) != 0;
 extern int32 op_table[64], len_table[9];
 
 if (sw & SWMASK ('C')) {                                /* character? */
@@ -268,6 +271,11 @@ if (sw & SWMASK ('S')) {                                /* string? */
         } while ((i < LINE_LNT) && ((val[i] & WM) == 0));
     return -(i - 1);
     }
+if (sw & SWMASK('Z')) {                                 /* address? */
+    fprintf (of, "ADR");
+    fprint_addr (of, val);                               /* print addr */
+    return -2;
+    }
 if ((sw & SWMASK ('M')) == 0)
     return SCPE_ARG;
 
@@ -296,7 +304,8 @@ if ((((flags & len_table[(ilnt > 8)? 8: ilnt]) == 0) && /* invalid lnt, */
     return dcw (of, op, val, sw);
 fprintf (of, "%s",opcode[op]);                          /* print opcode */
 if (ilnt > 2) {                                         /* A address? */
-    if (((flags & IO) || (op == OP_NOP)) && (val[1] == BCD_PERCNT))
+    if (((flags & IO) || (op == OP_NOP)) &&
+        ((val[1] == BCD_PERCNT) || (val[1] == BCD_ATSIGN)))
         fprintf (of, " %%%c%c", bcd2ascii (val[2], use_h),
             bcd2ascii (val[3], sw));
     else fprint_addr (of, &val[1]);

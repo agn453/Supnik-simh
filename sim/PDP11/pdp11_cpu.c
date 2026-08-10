@@ -1,6 +1,6 @@
 /* pdp11_cpu.c: PDP-11 CPU simulator
 
-   Copyright (c) 1993-2023, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    cpu          PDP-11 CPU
 
+   11-Feb-26    RMS     Added STKLIM reg as settable option to 11/40
    04-Feb-23    RMS     WRTLCK reads and tosses destination data
                         Writes must test for aborts before changing CCs
    27-Dec-22    RMS     Vector with T set traps immediately (Walter Mueller)
@@ -630,7 +631,9 @@ MTAB cpu_mod[] = {
     { MTAB_XTD|MTAB_VDV, OPT_MMU, NULL, "NOMMU", &cpu_clr_opt },
     { MTAB_XTD|MTAB_VDV, OPT_BVT, NULL, "BEVENT", &cpu_set_opt },
     { MTAB_XTD|MTAB_VDV, OPT_BVT, NULL, "NOBEVENT", &cpu_clr_opt },
-    { UNIT_MSIZE, 16384, NULL, "16K", &cpu_set_size},
+    { MTAB_XTD|MTAB_VDV, OPT_STKLR, NULL, "STKLIM", &cpu_set_opt },
+    { MTAB_XTD|MTAB_VDV, OPT_STKLR, NULL, "NOSTKLIM", &cpu_clr_opt },
+    { UNIT_MSIZE, 16384, NULL, "16K", &cpu_set_size },
     { UNIT_MSIZE, 32768, NULL, "32K", &cpu_set_size},
     { UNIT_MSIZE, 49152, NULL, "48K", &cpu_set_size},
     { UNIT_MSIZE, 65536, NULL, "64K", &cpu_set_size},
@@ -3089,7 +3092,7 @@ if (CPUT (HAS_STKLF)) {                                 /* fixed stack? */
     setTRAP (TRAP_YEL);                                 /* always yellow trap */
     setCPUERR (CPUE_YEL);
     }
-else if (CPUT (HAS_STKLR)) {                            /* register limit? */
+else if (CPUO (OPT_STKLR)) {                            /* register limit? */
     if (adr >= (STKLIM + STKL_R)) {                     /* yellow zone? */
         setTRAP (TRAP_YEL);                             /* still yellow trap */
         setCPUERR (CPUE_YEL);

@@ -146,7 +146,7 @@
 
 #define CCYL_RP03       0400000                         /* RP03 flag */
 
-#define RP_MIN 2
+#define RP_MIN 10
 #define MAX(x,y) (((x) > (y))? (x): (y))
 
 extern int32 *M;
@@ -161,8 +161,8 @@ int32 rp_da = 0;                                        /* disk address */
 int32 rp_wc = 0;                                        /* word count */
 int32 rp_busy = 0;                                      /* busy */
 int32 rp_stopioe = 1;                                   /* stop on error */
-int32 rp_swait = 10;                                    /* seek time */
-int32 rp_rwait = 10;                                    /* rotate time */
+int32 rp_swait = 100;                                   /* seek time */
+int32 rp_rwait = 100;                                   /* rotate time */
 
 DEVICE rp_dev;
 int32 rp63 (int32 dev, int32 pulse, int32 dat);
@@ -336,8 +336,10 @@ if (pulse & 04) {
             sim_activate (uptr, RP_MIN);                /* short delay */
         else {
             c = GET_CYL (rp_da, uptr->flags);
-            c = abs (c - uptr->CYL) * rp_swait;         /* seek time */
-            sim_activate (uptr, MAX (RP_MIN, c + rp_rwait));
+            c = (abs (c - uptr->CYL) * rp_swait) + rp_rwait;         /* seek time */
+            if (c < RP_MIN)
+                c = RP_MIN;
+            sim_activate (uptr, MAX (RP_MIN, c));
             rp_sta = rp_sta & ~STA_DON;                 /* clear done */
             }
         }

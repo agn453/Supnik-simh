@@ -1,6 +1,6 @@
 /* pdp11_cpumod.c: PDP-11 CPU model-specific features
 
-   Copyright (c) 2004-2023, Robert M Supnik
+   Copyright (c) 2004-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,9 @@
 
    system       PDP-11 model-specific registers
 
+   11-Feb-26    RMS     Added STKLIM reg as settable option to 11/40
+   26-Nov-24    RMS     Fixed ODD_MRG macro (Johnny Billquist)
+   25-Nov-24    RMS     Fixed DR to be byte-writeable (Johnny Billquist)
    10-Oct-23    RMS     Fixed writes to 11/70 RO registers (Tony Lawrence)
    19-Nov-22    RMS     Fixed byte access errors in PIRQ, STKLIM, CDR (Walter Mueller)
    15-Sep-20    RMS     Fixed problem in KDJ11E programmable clock (Paul Koning)
@@ -71,7 +74,7 @@
         cur = cur << 8
 #define ODD_MRG(prv,cur) \
     if (access == WRITEB) \
-        cur =((pa & 1)? (((prv) & 0377) | ((cur) & 0177400)) : \
+        cur =((pa & 1)? (((prv) & 0377) | (((cur) & 0377) << 8)) : \
                         (((prv) & 0177400) | ((cur) & 0377)))
 
 int32 SR = 0;                                           /* switch register */
@@ -107,6 +110,8 @@ extern int32 clk_fie, clk_fnxm, clk_tps, clk_default;
 
 t_stat CPU24_rd (int32 *data, int32 addr, int32 access);
 t_stat CPU24_wr (int32 data, int32 addr, int32 access);
+t_stat CPU40_rd (int32 *data, int32 addr, int32 access);
+t_stat CPU40_wr (int32 data, int32 addr, int32 access);
 t_stat CPU44_rd (int32 *data, int32 addr, int32 access);
 t_stat CPU44_wr (int32 data, int32 addr, int32 access);
 t_stat CPU45_rd (int32 *data, int32 addr, int32 access);
@@ -157,6 +162,7 @@ extern void put_PIRQ (int32 val);
 DIB psw_dib = { IOBA_PSW, IOLN_PSW, &PSW_rd, &PSW_wr, 0 };
 DIB cpuj_dib = { IOBA_CPU, IOLN_CPU, &CPUJ_rd, &CPUJ_wr, 0 };
 DIB cpu24_dib = { IOBA_CPU, IOLN_CPU, &CPU24_rd, &CPU24_wr, 0 };
+DIB cpu40_dib = { IOBA_CPU, IOLN_CPU, &CPU40_rd, &CPU40_wr, 0 };
 DIB cpu44_dib = { IOBA_CPU, IOLN_CPU, &CPU44_rd, &CPU44_wr, 0 };
 DIB cpu45_dib = { IOBA_CPU, IOLN_CPU, &CPU45_rd, &CPU45_wr, 0 };
 DIB cpu60_dib = { IOBA_CPU, IOLN_CPU, &CPU60_rd, &CPU60_wr, 0 };
@@ -230,6 +236,7 @@ CNFTAB cnf_tab[] = {
     { HAS_PSW,  0, &psw_dib },                          /* PSW */
     { CPUT_J,   0, &cpuj_dib },                         /* CPU control */
     { CPUT_24,  0, &cpu24_dib },
+    { CPUT_40, OPT_STKLR, &cpu40_dib },                 /* 40: only if STKLR*/
     { CPUT_44,  0, &cpu44_dib },
     { CPUT_45,  0, &cpu45_dib },
     { CPUT_60,  0, &cpu60_dib },
@@ -262,7 +269,7 @@ static const char *opt_name[] = {
     "Unibus", "Qbus", "EIS", "NOEIS", "FIS", "NOFIS",
     "FPP", "NOFPP", "CIS", "NOCIS", "MMU", "NOMMU",
     "Unused", "Unused", "PARITY", "NOPARITY", "Unibus map", "No map",
-    "BEVENT enabled", "BEVENT disabled", NULL
+    "BEVENT enabled", "BEVENT disabled", "STKLIM", "NOSTKLIM", NULL
     };
 
 static const char *jcsr_val[4] = {
@@ -328,6 +335,7 @@ return SCPE_OK;
 
 t_stat DR_wr (int32 data, int32 pa, int32 access)
 {
+ODD_MRG (DR, data);
 DR = data;
 return SCPE_OK;
 }
@@ -456,6 +464,35 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 return SCPE_NXM;                                        /* unimplemented */
 }
 
+/* CPU control registers - 11/40 - configured only if OPT_STKLR set */
+
+t_stat CPU40_rd (int32 *data, int32 pa, int32 access)
+{
+switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
+
+    case 016:                                           /* STKLIM */
+        *data = STKLIM & STKLIM_RW;
+        return SCPE_OK;
+        }                                               /* end switch PA */
+
+    *data = 0;
+    return SCPE_NXM;                                        /* unimplemented */
+}
+
+t_stat CPU40_wr (int32 data, int32 pa, int32 access)
+{
+switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
+
+    case 016:                                           /* STKLIM */
+        EVN_IGN(data);
+        ODD_SHF(data);
+        STKLIM = data & STKLIM_RW;
+        return SCPE_OK;
+        }                                               /* end switch pa */
+
+return SCPE_NXM;                                        /* unimplemented */
+}
+
 /* CPU control registers - 11/45 */
 
 t_stat CPU45_rd (int32 *data, int32 pa, int32 access)
@@ -541,6 +578,7 @@ t_stat CPU60_wr (int32 data, int32 pa, int32 access)
 switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
 
     case 000:                                           /* WCS */
+        ODD_MRG (WCS, data);
         WCS = data & WCS60_WR;
         return SCPE_OK;
 
@@ -561,6 +599,7 @@ switch ((pa >> 1) & 017) {                              /* decode pa<4:1> */
         return SCPE_OK;
 
     case 014:                                           /* MBRK */
+        ODD_MRG (MBRK, data);
         MBRK = data & MBRK60_WR;
         return SCPE_OK;
 

@@ -1,6 +1,6 @@
 /* i7094_io.c: IBM 7094 I/O subsystem (channels)
 
-   Copyright (c) 2003-2017, Robert M. Supnik
+   Copyright (c) 2003-2026, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    chana..chanh         I/O channels
 
+   21-May-26    RMS     ch6_req_wr should be t_stat not t_bool (Mark Pizzolato)
    13-Mar-17    RMS     Annotated fall through in switch
    19-Mar-12    RMS     Fixed declaration of breakpoint variables (Mark Pizzolato)
 
@@ -1408,7 +1409,7 @@ return SCPE_OK;
 
 /* Output - request channel output service */
 
-t_bool ch6_req_wr (uint32 ch, uint32 unit)
+t_stat ch6_req_wr (uint32 ch, uint32 unit)
 {
 if (ch6_qconn (ch, unit)) {                             /* ch conn to caller? */
     ch_req |= REQ_CH (ch);

@@ -1,6 +1,6 @@
 /* gri_sys.c: GRI-909 simulator interface
 
-   Copyright (c) 2001-2017, Robert M Supnik
+   Copyright (c) 2001-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   18-Feb-26    RMS     Added abs loader support
    13-Mar-17    RMS     Annotated fall through in switch
    14-Jan-08    RMS     Added GRI-99 support
    18-Oct-02    RMS     Fixed bug in symbolic decode (Hans Pufal)
@@ -79,20 +80,32 @@ const char *sim_stop_messages[] = {
 
    Bootstrap loader format consists of blocks separated by zeroes.  Each
    word in the block has three frames: a control frame (ignored) and two
-   data frames.  The user must specify the load address.  Switch -c means
-   continue and load all blocks until end of tape.
+   data frames.  The user must specify the load address.
+
+   If an absolute loader control code (001) is detected, it is assumed
+   that the rest of the file is in absolute loader format.
 */
+
+int32 getword (FILE *fileref)
+{
+int32 c1, c2;
+
+if ((c1 = getc (fileref)) == EOF)
+    return -1;
+if ((c2 = getc (fileref)) == EOF)
+    return -1;
+return ((c1 & 0377) << 8) | (c2 & 0377);
+}
 
 t_stat sim_load (FILE *fileref, char *cptr, char *fnam, int flag)
 {
-int32 c;
-uint32 org;
+int32 c, i, wd, wc, cs, blksum, org;
 t_stat r;
 char gbuf[CBUFSIZE];
 
 if (*cptr != 0) {                                       /* more input? */
     cptr = get_glyph (cptr, gbuf, 0);                   /* get origin */
-    org = get_uint (gbuf, 8, AMASK, &r);
+    org = (int32) get_uint (gbuf, 8, AMASK, &r);
     if (r != SCPE_OK)
         return r;
     if (*cptr != 0)                                     /* no more */
@@ -103,24 +116,61 @@ else org = 0200;                                        /* default 200 */
 for (;;) {                                              /* until EOF */
     while ((c = getc (fileref)) == 0) ;                 /* skip starting 0's */
     if (c == EOF)                                       /* EOF? done */
+        return SCPE_OK;
+    if (c == 001)                                       /* bin block? next */
         break;
-    for ( ; c != 0; ) {                                 /* loop until ctl = 0 */
+    while (c != 0) {                                    /* loop until ctl = 0 */
                                                         /* ign ctrl frame */
-        if ((c = getc (fileref)) == EOF)                /* get high byte */
+        if ((wd = getword (fileref)) < 0)               /* get data word */
             return SCPE_FMT;                            /* EOF is error */
         if (!MEM_ADDR_OK (org))
             return SCPE_NXM;
-        M[org] = ((c & 0377) << 8);                     /* store high */
-        if ((c = getc (fileref)) == EOF)                /* get low byte */
-            return SCPE_FMT;                            /* EOF is error */
-        M[org] = M[org] | (c & 0377);                   /* store low */
+        M[org] = wd;                                    /* store word */
         org = org + 1;                                  /* incr origin */
-        if ((c = getc (fileref)) == EOF)                /* get ctrl frame */
+        if ((c = getc (fileref)) == EOF)                /* get ctrl frame or 0 */
             return SCPE_OK;                             /* EOF is ok */
-        }                                               /* end block for */
-    if (!(sim_switches & SWMASK ('C')))
-        return SCPE_OK;
-    }                                                   /* end tape for */
+        }                                               /* end while c = 0 */
+    }                                                   /* end for */
+
+/* Here for start of binary loader format.
+   We know that c was 001, so we're into a block
+   
+   Format is
+   
+   001
+   checksum
+   origin
+   word count
+   data
+   :
+   data
+*/
+
+for (;;) {                                              /* until end of tape or stop */
+    if ((blksum = getword (fileref)) < 0)               /* get block sum */
+        return SCPE_FMT;
+    if ((org = getword (fileref)) < 0)                  /* get origin */
+        return SCPE_FMT;
+    if ((wc = getword (fileref)) < 0)                   /* get block count */
+        return SCPE_FMT;
+    cs = org + wc;                                      /* init running csum */
+    for (i = 0; i < wc; i++) {                          /* get data words */
+        if ((wd = getword (fileref)) < 0)
+            return SCPE_FMT;
+        if (!MEM_ADDR_OK (org))
+            return SCPE_NXM;
+        M[org] = wd;                                    /* store word */
+        cs = cs + wd;                                   /* add into csum */
+        org = org + 1;                                  /* incr origin */
+    }
+    if (blksum != (cs & 0177777))                       /* checksum okay? */
+        return SCPE_FMT;
+    while ((c = getc (fileref)) == 0);                  /* skip any 0's */
+    if ((c == EOF) || (c == 002))                       /* EOF or end marker? done */
+        break;
+    if (c != 001)                                       /* another block?*/
+        return SCPE_FMT;                                /* unknown char */
+    }
 return SCPE_OK;
 }
 

@@ -1,6 +1,6 @@
 /* i1401_defs.h: IBM 1401 simulator definitions
 
-   Copyright (c) 1993-2021, Robert M. Supnik
+   Copyright (c) 1993-2024, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,10 +23,11 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   26-Aug-24    RMS     Added @ character definition (Van Snyder)
    08-Jun-21    RMS     Added max memory address
    06-JUl-10    RMS     Added overlap indicator definitions
    22-May-10    RMS     Added check for 64b definitions
-   11-Jul-08    RMS     Added IO mode flag for boot (from Bob Abeles)
+   11-Jul-08    RMS     Added IO mode flag for boot (Bob Abeles)
    28-Jun-07    RMS     Defined character code for tape mark
    14-Nov-04    RMS     Added column binary support
    27-Oct-04    RMS     Added maximum instruction length
@@ -179,6 +180,7 @@
 #define BCD_EIGHT       010
 #define BCD_NINE        011
 #define BCD_ZERO        012
+#define BCD_ATSIGN      014
 #define BCD_TAPMRK      017
 #define BCD_ALT         020
 #define BCD_S           022

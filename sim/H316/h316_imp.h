@@ -1,6 +1,6 @@
 /* h316_imp.h- BBN ARPAnet IMP/TIP Definitions
 
-   Copyright (c) 2013, Robert Armstrong, bob@jfcl.com
+   Copyright (c) 2013-2026, Robert Armstrong, bob@jfcl.com
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -24,6 +24,7 @@
    in this Software without prior written authorization from Robert Armstrong.
 
    21-May-13    RLA     New file.
+   15-Feb-26    RMS     Fixed host #3, #4 definitions (Lars Brinkhoff, V4)
 */
 #ifdef VM_IMPTIP
 #ifndef H316_IMP_H_
@@ -89,14 +90,14 @@
 #define INT_V_HI2TX  (INT_V_EXTD+ 4)    // host 2 transmit interrupt
 
 // Host interface, line #3 ...
-#define HI3                     051     // device address for host interface #3
+#define HI3                     050     // device address for host interface #3
 #define HI3_RX_DMC        (DMC1-1+16)   // DMC channel for host 3 receive
 #define HI3_TX_DMC        (DMC1-1+15)   // DMC channel for host 3 transmit
 #define INT_V_HI3RX   (INT_V_EXTD+ 6)   // host 3 receive interrupt
 #define INT_V_HI3TX   (INT_V_EXTD+11)   // host 3 transmit interrupt
 
 // Host interface, line #4 ...
-#define HI4                     050     // device address for host interface #4
+#define HI4                     051     // device address for host interface #4
 #define HI4_RX_DMC       (DMC1-1+10)    // DMC channel for host 4 receive
 #define HI4_TX_DMC       (DMC1-1+ 5)    // DMC channel for host 4 transmit
 #define INT_V_HI4RX  (INT_V_EXTD+ 7)    // host 4 receive interrupt

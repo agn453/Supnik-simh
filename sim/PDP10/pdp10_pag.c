@@ -106,7 +106,7 @@ extern d10 ebr, ubr, hsb;
 extern d10 spt, cst, cstm, pur;
 extern a10 dbr1, dbr2, dbr3, dbr4;
 extern d10 pcst, quant;
-extern t_bool paging;
+// extern t_bool paging;
 extern UNIT cpu_unit;
 extern jmp_buf save_env;
 extern int32 test_int (void);

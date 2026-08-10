@@ -1,6 +1,6 @@
 /* sim_sock.c: OS-dependent socket routines
 
-   Copyright (c) 2001-2024, Robert M Supnik
+   Copyright (c) 2001-2025, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   23-Dec-25    RMS     Fixed bug in original V4 port (from Dave Bryan)
    23-Jan-24    RMS     Cleaned up SD_BOTH guard for FreeBSD 15 (from Dave Bryan)
    15-Oct-12    MP      Added definitions needed to detect possible tcp 
                         connect failures
@@ -1322,7 +1323,7 @@ int ret = 0;
 ret = p_getnameinfo(addr, size, hostnamebuf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST);
 if (0 == memcmp("::ffff:", hostnamebuf, 7))        /* is this a IPv4-mapped IPv6 address? */
     memmove(hostnamebuf, 7+hostnamebuf,            /* prefer bare IPv4 address */
-            strlen(hostnamebuf) + 7 - 1);          /* length to include terminating \0 */
+            strlen(hostnamebuf) - 7 + 1);          /* length to include terminating \0 */
 if (!ret)
     ret = p_getnameinfo(addr, size, NULL, 0, portnamebuf, NI_MAXSERV, NI_NUMERICSERV);
 return ret;

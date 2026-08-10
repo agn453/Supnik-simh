@@ -26,6 +26,8 @@
    Based on the original DZ11 simulator by Thord Nilson, as updated by
    Arthur Krewat.
 
+   09-Nov-24    JDB     Added an open-socket qualification to "tmxr_local_close"
+   27-Jul-24    JDB     Added a cast in "tmxr_get_packet_ln" from int32 to uint8
    19-Jul-24    RMS     Fixed potential undefined variable (Dave Bryan)
    19-Apr-24    RMS     Merged CH11 changes (Lars Brinkhoff)
    27-Mar-24    JDB     Dropped socket report from "tmxr_open_master"
@@ -410,7 +412,7 @@ int32 i = 0;
 if (!lp->conn)
     return SCPE_LOST;
 while (TMXR_VALID & (c = tmxr_getc_ln (lp)))
-    buf[i++] = c;
+    buf[i++] = (uint8) c;
 if (i > 0) {
     *pbuf = buf;
     *psize = i;
@@ -1569,6 +1571,7 @@ return;
 
 static void tmxr_local_close (TMLN *lp)
 {
-sim_close_sock (lp->conn);                              /* reset conn */
+if (lp->conn != 0)                                      /* if the socket is open */
+    sim_close_sock (lp->conn);                          /*   then close it */
 return;
 }

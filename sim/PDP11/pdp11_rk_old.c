@@ -1,6 +1,6 @@
 /* pdp11_rk.c: RK11/RKV11 cartridge disk simulator
 
-   Copyright (c) 1993-2026, Robert M Supnik
+   Copyright (c) 1993-2022, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,8 +25,6 @@
 
    rk           RK11/RKV11/RK05 cartridge disk
 
-   21-Jan-26    RMS     Added variable minimum operation time
-   16-Jan-26    RMS     Fixed numerous overlapped seek bugs
    28-Nov-22    RMS     Fixed word count adjustment on NXM (Anthony Lawrence)
    12-Mar-16    RMS     Revised to support UC15 (18b IO)
    23-Oct-13    RMS     Revised for new boot setup routine
@@ -59,29 +57,16 @@
    The most complicated part of the RK11 controller is the concept of
    interrupt "polling".  While only one read or write can occur at a
    time, the controller supports multiple seeks.  When a seek completes,
-   if done amd IE are set, the drive attempts to interrupt.  If an interrupt
-   is already pending, or done or IE is clear, the interrupt is "queued"
-   until it can be processed. When a seek interrupt occurs, RKDS<15:13>
-   is loaded with the number of the interrupting drive, and RKCS<SCP>
-   is set.
+   if done is set the drive attempts to interrupt.  If an interrupt is
+   already pending, the interrupt is "queued" until it can be processed.
+   When an interrupt occurs, RKDS<15:13> is loaded with the number of the
+   interrupting drive.
 
    To implement this structure, and to assure that read/write interrupts
    take priority over seek interrupts, the controller contains an
-   bit vector, rkintq, with a bit for a controller interrupt and then
-   one for each drive.  In addition, the drive number of the last
-   non-seeking drive is recorded in last_drv. States of rkintq:
-
-   1. The whole queue is cleared by INIT or CTRL RESET.
-   2. The controller interrupt flag (RK_CTLI)
-        a) is set on any transition of DONE from 0 to 1,
-           provided that IE is set
-        b) is cleared when IE transitions from 1 to 0;
-           at the start of any command; at acknowledgement
-           of a controller interupt
-   3. A drive's seek interrupt flag (RK_SCPI (drive))
-        a) is set at the completion of a seek
-        b) is cleared at the start of any head movement command;
-           at acknowledgement of that interrupt
+   interrupt queue, rkintq, with a bit for a controller interrupt and
+   then one for each drive.  In addition, the drive number of the last
+   non-seeking drive is recorded in last_drv.
 */
 
 #include "pdp11_defs.h"
@@ -144,7 +129,6 @@
 #define RKDS_PWR        0010000                         /* power low */
 #define RKDS_ID         0160000                         /* drive ID */
 #define RKDS_V_ID       13
-#define RKDS_M_ID       07
 
 /* RKER */
 
@@ -210,6 +194,7 @@
 
 #define RKBA_IMP        0177776                         /* implemented */
 
+#define RK_MIN          10
 #define MAX(x,y)        (((x) > (y))? (x): (y))
 
 extern int32 int_req[IPL_HLVL];
@@ -224,7 +209,6 @@ int32 rkwc = 0;                                         /* word count */
 int32 rkintq = 0;                                       /* interrupt queue */
 int32 last_drv = 0;                                     /* last r/w drive */
 int32 rk_stopioe = 1;                                   /* stop on error */
-int32 rk_mwait = 10;                                    /* min oper time */
 int32 rk_swait = 10;                                    /* seek time */
 int32 rk_rwait = 10;                                    /* rotate time */
 
@@ -284,7 +268,6 @@ REG rk_reg[] = {
     { FLDATA (ERR, rkcs, CSR_V_ERR) },
     { FLDATA (DONE, rkcs, CSR_V_DONE) },
     { FLDATA (IE, rkcs, CSR_V_IE) },
-    { DRDATA (MTIME, rk_mwait, 24), PV_LEFT+REG_NZ },
     { DRDATA (STIME, rk_swait, 24), PV_LEFT },
     { DRDATA (RTIME, rk_rwait, 24), PV_LEFT },
     { FLDATA (STOP_IOE, rk_stopioe, 0) },
@@ -395,18 +378,16 @@ switch ((PA >> 1) & 07) {                               /* decode PA<3:1> */
         if (access == WRITEB)
             data = (PA & 1)? (rkcs & 0377) | (data << 8): (rkcs & ~0377) | data;
         if ((data & CSR_IE) == 0) {                     /* int disable? */
-            rkintq = rkintq & ~RK_CTLI;                 /* clr ctlr int */
+            rkintq = 0;                                 /* clr int queue */
             CLR_INT (RK);                               /* clr int request */
             }
-        else {                                          /* int enable */
-            if ((rkcs & (CSR_DONE + CSR_IE)) == CSR_DONE) /* DON'IE: 10 -> 11? */
-                rkintq = rkintq | RK_CTLI;              /* queue ctrl int */
-            if (rkintq != 0)                            /* any ints pending? */
-                SET_INT (RK);                           /* set int request */
+        else if ((rkcs & (CSR_DONE + CSR_IE)) == CSR_DONE) {
+            rkintq = rkintq | RK_CTLI;                  /* queue ctrl int */
+            SET_INT (RK);                               /* set int request */
             }
         rkcs = (rkcs & ~RKCS_RW) | (data & RKCS_RW);
         if ((rkcs & CSR_DONE) && (data & CSR_GO))       /* new function? */
-            rk_go();
+            rk_go ();
         return SCPE_OK;
 
     case 3:                                             /* RKWC */
@@ -451,14 +432,13 @@ if (func == RKCS_CTLRESET) {                            /* control reset? */
     CLR_INT (RK);                                       /* clr int request */
     return;
     }
-last_drv = GET_DRIVE (rkda);                            /* get drive no */
-uptr = rk_dev.units + last_drv;                         /* select unit */
 rker = rker & ~RKER_SOFT;                               /* clear soft errors */
 if (rker == 0)                                          /* redo summary */
     rkcs = rkcs & ~RKCS_ERR;
 rkcs = rkcs & ~RKCS_SCP;                                /* clear sch compl */
-rkintq = rkintq & ~RK_SCPI (last_drv);                   /* clear seek int */
 rk_clr_done ();                                         /* clear done */
+last_drv = GET_DRIVE (rkda);                            /* get drive no */
+uptr = rk_dev.units + last_drv;                         /* select unit */
 if (uptr->flags & UNIT_DIS) {                           /* not present? */
     rk_set_done (RKER_NXD);
     return;
@@ -500,11 +480,10 @@ if (cyl >= RK_NUMCY) {                                  /* bad cyl? */
     rk_set_done (RKER_NXC);
     return;
     }
-CLR_INT(RK);                                            /* no int */
 i = abs (cyl - uptr->CYL) * rk_swait;                   /* seek time */
 if (func == RKCS_SEEK) {                                /* seek? */
     rk_set_done (0);                                    /* set done */
-    sim_activate (uptr, MAX (rk_mwait, i));             /* schedule */
+    sim_activate (uptr, MAX (RK_MIN, i));               /* schedule */
     }
 else sim_activate (uptr, i + rk_rwait);
 uptr->FUNC = func;                                      /* save func */
@@ -529,10 +508,17 @@ uint32 ma;
 RKCONTR comp;
 
 drv = (int32) (uptr - rk_dev.units);                    /* get drv number */
-if (uptr->FUNC == RKCS_SEEK) {                          /* seek complete */
-    rkintq = rkintq | RK_SCPI (drv);                    /* queue int req */
-    if ((rkcs & (CSR_DONE | CSR_IE)) == (CSR_DONE | CSR_IE))/* DONE && IE? */
-        SET_INT (RK);                                   /* request int */
+if (uptr->FUNC == RKCS_SEEK) {                          /* seek */
+    rkcs = rkcs | RKCS_SCP;                             /* set seek done */
+    if (rkcs & CSR_IE) {                                /* ints enabled? */
+        rkintq = rkintq | RK_SCPI (drv);                /* queue request */
+        if (rkcs & CSR_DONE)
+            SET_INT (RK);
+        }
+    else {
+        rkintq = 0;                                     /* clear queue */
+        CLR_INT (RK);                                   /* clear interrupt */
+        }
     return SCPE_OK;
     }
 
@@ -690,7 +676,10 @@ if (rkcs & CSR_IE) {                                    /* int enable? */
     rkintq = rkintq | RK_CTLI;                          /* set ctrl int */
     SET_INT (RK);                                       /* request int */
     }
-else CLR_INT(RK);
+else {
+    rkintq = 0;                                         /* clear queue */
+    CLR_INT (RK);
+    }
 return;
 }
 
@@ -698,7 +687,7 @@ void rk_clr_done (void)
 {
 rkcs = rkcs & ~CSR_DONE;                                /* clear done */
 rkintq = rkintq & ~RK_CTLI;                             /* clear ctl int */
-CLR_INT (RK);                                           /* ctrl busy, no int */
+CLR_INT (RK);                                           /* clear int req */
 return;
 }
 
@@ -709,15 +698,11 @@ int32 i;
 for (i = 0; i <= RK_NUMDR; i++) {                       /* loop thru intq */
     if (rkintq & (1u << i)) {                           /* bit i set? */
         rkintq = rkintq & ~(1u << i);                   /* clear bit i */
-        rkds = rkds & ~RKDS_ID;                         /* clr drv ID */
-        if (i == 0)                                     /* ctrl int? */
-            rkds = rkds | last_drv;                     /* use last drive */
-        else {                                          /* seek int */
-            rkds = rkds | ((i - 1) << RKDS_V_ID);       /* insert drive ID*/
-            rkcs = rkcs | RKCS_SCP;                     /* set sch complete */
+        if (rkintq) {                                   /* queue next */
+            SET_INT (RK);
             }
-        if (rkintq != 0)                                /* queue next */
-            SET_INT(RK);
+        rkds = (rkds & ~RKDS_ID) |                      /* id drive */
+            (((i == 0)? last_drv: i - 1) << RKDS_V_ID);
         return rk_dib.vec;                              /* return vector */
         }
     }

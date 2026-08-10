@@ -1,6 +1,6 @@
 /* sim_console.c: simulator console I/O library
 
-   Copyright (c) 1993-2024, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   26-May-26    RMS     Fixed sim_os_fd_isatty to be int everywhere
    27-Mar-24    JDB     Display connection port instead of socket for Telnet console
    13-Jun-23    RMS     Silenced compiler warnings on system calls (Mark Pizzolato)
    07-Feb-22    RMS     Silenced Mac compiler warnings (Ken Rector)
@@ -120,7 +121,7 @@ TMXR sim_con_tmxr = { 1, 0, 0, &sim_con_ldsc };         /* console line mux */
 
 /* Forward declaratations */
 
-static t_stat sim_os_fd_isatty (int fd);
+static int sim_os_fd_isatty (int fd);
 
 /* Set/show data structures */
 
@@ -645,7 +646,7 @@ return SCPE_OK;
 
 t_bool sim_ttisatty (void)
 {
-return sim_os_fd_isatty (0);
+return (sim_os_fd_isatty (0) != 0);
 }
 
 /* VMS routines, from Ben Thomas, with fixes from Robert Alan Byer */
@@ -731,9 +732,9 @@ t_stat sim_ttclose (void)
 return sim_ttcmd ();
 }
 
-static t_bool sim_os_fd_isatty (int fd)
+static int sim_os_fd_isatty (int fd)
 {
-return (t_bool)isatty (fd);
+return isatty (fd);
 }
 
 t_stat sim_os_poll_kbd (void)
@@ -859,9 +860,9 @@ t_stat sim_ttclose (void)
 return SCPE_OK;
 }
 
-static t_bool sim_os_fd_isatty (int fd)
+static int sim_os_fd_isatty (int fd)
 {
-return (t_bool)_isatty (fd);
+return _isatty (fd);
 }
 
 t_stat sim_os_poll_kbd (void)
@@ -981,9 +982,9 @@ t_stat sim_ttclose (void)
 return sim_ttcmd ();
 }
 
-static t_bool sim_os_fd_isatty (int fd)
+static int sim_os_fd_isatty (int fd)
 {
-return (t_bool)isatty (fd);
+return isatty (fd);
 }
 
 t_stat sim_os_poll_kbd (void)
@@ -1093,9 +1094,9 @@ t_stat sim_ttclose (void)
 return sim_ttcmd ();
 }
 
-static t_bool sim_os_fd_isatty (int fd)
+static int sim_os_fd_isatty (int fd)
 {
-return (t_bool)isatty (fd);
+return isatty (fd);
 }
 
 t_stat sim_os_poll_kbd (void)

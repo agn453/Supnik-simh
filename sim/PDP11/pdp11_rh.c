@@ -1,6 +1,6 @@
 /* pdp11_rh.c: PDP-11 Massbus adapter simulator
 
-   Copyright (c) 2005-2025, Robert M Supnik
+   Copyright (c) 2005-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    rha, rhb, rhc, rhd   RH11/RH70 Massbus adapter
 
+   16-May-26    RMS     Fixed cs1dt to be true logical expression
    31-Jul-25    RMS     Reset does not clear WC (John Bruner)
    12-May-23    RMS     Added fourth adapter
    25-Jul-22    RMS     Removed OPT_RH11, changed adapter type test
@@ -491,7 +492,7 @@ switch (ofs) {                                          /* case on reg */
             if ((val & CS1_DONE) && (val & CS1_IE))     /* to DONE+IE? */
                 massbus[mb].iff = 1;                    /* set CSTB INTR */
             massbus[mb].cs1 = (massbus[mb].cs1 & ~CS1_IE) | (val & CS1_IE);
-            cs1dt = (val & CS1_GO) && (GET_FNC (val) >= FNC_XFER);
+            cs1dt = ((val & CS1_GO) != 0) && (GET_FNC (val) >= FNC_XFER);
             if (cs1dt && ((massbus[mb].cs1 & CS1_DONE) == 0))  /* dt, done clr? */
                 mba_set_cs2 (CS2_PGE, mb);              /* prgm error */
             else {
@@ -898,11 +899,11 @@ void mba_set_enbdis (uint32 mb, t_bool dis)
 t_bool orig;
 if (mb >= MBA_NUM)                                      /* valid MBA? */
     return;
-orig = mba_dev[mb].flags & DEV_DIS;
+orig = (mba_dev[mb].flags & DEV_DIS) != 0;
 if (dis)
     mba_dev[mb].flags |= DEV_DIS;
 else mba_dev[mb].flags &= ~DEV_DIS;
-if (orig ^ dis)
+if (orig != dis)
     mba_reset (&mba_dev[mb]);                           /* reset on change */
 return;
 }

@@ -29,6 +29,7 @@
 
    mi           modem interface
 
+   18-May-26    RMS     Fixed incomplete boolean expression
    21-May-13    RLA     New file
 
 
@@ -687,7 +688,7 @@ t_stat mi_attach (UNIT *uptr, char *cptr)
   //    ATTACH MIn llll:w.x.y.z:rrrr - connect via UDP to a remote simh host
   //
   t_stat ret;  char *pfn;  uint16 line = uptr->mline;
-  t_bool fport = sim_switches & SWMASK('P');
+  t_bool fport = (sim_switches & SWMASK('P')) != 0;
 
   // If we're already attached, then detach ...
   if ((uptr->flags & UNIT_ATT) != 0) detach_unit(uptr);

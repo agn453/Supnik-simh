@@ -1,6 +1,6 @@
 /* id_idc.c: Interdata MSM/IDC disk controller simulator
 
-   Copyright (c) 2001-2022, Robert M. Supnik
+   Copyright (c) 2001-2026, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    idc          MSM/IDC disk controller
 
+   21-May-26    RMS     Fixed idc_wds to be t_stat not t_bool (Mark Pizzolato)
    12-Jul-22    RMS     Fixed duplicate register names (Mark Pizzolato)
    03-Apr-06    RMS     Fixed WD/WH handling (Davis Johnson)
    30-Mar-06    RMS     Fixed bug, nop command should be ignored (Davis Johnson)
@@ -670,7 +671,7 @@ return SCPE_OK;
 
 /* Write data sector */
 
-t_bool idc_wds (UNIT *uptr)
+t_stat idc_wds (UNIT *uptr)
 {
 for ( ; idc_bptr < IDC_NUMBY; idc_bptr++)
     idcxb[idc_bptr] = idc_db;                           /* fill with last */
@@ -681,7 +682,7 @@ if (ferror (uptr->fileref)) {                           /* error? */
     idc_done (STC_DTE);
     return SCPE_IOERR;
     }
-return FALSE;
+return SCPE_OK;
 }
 
 /* Data transfer error test routine */

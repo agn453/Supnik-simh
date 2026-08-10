@@ -189,7 +189,7 @@ int32 udp_find_free_link (void)
   // are free, then return -1 ...
   int32 i;
   for (i = 0;  i < MAXLINKS;  ++i) {
-    if (udp_links[i].used == 0) {
+    if (!udp_links[i].used) {
       memset(&udp_links[i], 0, sizeof(UDP_LINK));
       return i;
     }

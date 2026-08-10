@@ -1,6 +1,6 @@
 /* pdp11_defs.h: PDP-11 simulator definitions
 
-   Copyright (c) 1993-2024, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,9 @@
    The author gratefully acknowledges the help of Max Burnet, Megan Gentry,
    and John Wilson in resolving questions about the PDP-11
 
+   18-May-26    RMS     Changed UNIBUS to be logical expression
+   12-Feb-26    RMS     Added definitions for Unibus DH11 (Lars Brinkoff)
+   11-Feb-26    RMS     Converted STKLIM reg from static to configurable
    05-May-24    RMS     Merged CH11 definitions (Lars Brinkhoff)
    12-May-23    RMS     Added fourth Massbus adapter
    23-Oct-22    RMS     Moved NXM abort priority above MME trap priority
@@ -181,10 +184,11 @@
 #define OPT_PAR         (1u << 7)                       /* parity */
 #define OPT_UBM         (1u << 8)                       /* UBM */
 #define OPT_BVT         (1u << 9)                       /* BEVENT */
+#define OPT_STKLR       (1u << 10)                      /* STKLIM reg */
 
 #define CPUT(x)         ((cpu_type & (x)) != 0)
 #define CPUO(x)         ((cpu_opt & (x)) != 0)
-#define UNIBUS          (cpu_opt & BUS_U)
+#define UNIBUS          ((cpu_opt & BUS_U) != 0)
 
 /* Feature sets
 
@@ -206,7 +210,6 @@
    2REG                 dual register set
    MMR3                 MMR3 register
    MMTR                 mem mgt traps
-   STKLR                STKLIM register
    STKLF                fixed stack limit
    SID                  supervisor mode, I/D spaces
    ODD                  odd address trap
@@ -242,7 +245,6 @@
 #define HAS_2REG        (CPUT_45|CPUT_70|CPUT_J)
 #define HAS_MMR3        (CPUT_F|CPUT_44|CPUT_45|CPUT_70|CPUT_J)
 #define HAS_MMTR        (CPUT_45|CPUT_70)
-#define HAS_STKLR       (CPUT_45|CPUT_60|CPUT_70)
 #define HAS_STKLF       (CPUT_04|CPUT_05|CPUT_20|CPUT_F|CPUT_34| \
                          CPUT_40|CPUT_44|CPUT_J)
 #define HAS_SID         (CPUT_44|CPUT_45|CPUT_70|CPUT_J)
@@ -525,11 +527,14 @@ struct pdp_dib {
     int32               vloc;                           /* locator */
     int32               vec;                            /* value */
     int32               (*ack[VEC_DEVMAX])(void);       /* ack routines */
+    uint32              dummy1;                         /* V4 compat */
     };
 
 typedef struct pdp_dib DIB;
 
 /* I/O page layout - XUB, RQB,RQC,RQD float based on number of DZ's */
+
+#define IOBA_AUTO       (0)                             /* V4 compat */
 
 #define IOBA_DZ         (IOPAGEBASE + 000100)           /* DZ11 */
 #define IOLN_DZ         010
@@ -691,6 +696,8 @@ typedef struct pdp_dib DIB;
 #define INT_V_UCB       19
 #define INT_V_RPB       20
 #define INT_V_CH        21
+#define INT_V_DHRX      22                              /* DH11 */
+#define INT_V_DHTX      23
 
 #define INT_V_PIR4      0                               /* BR4 */
 #define INT_V_TTI       1
@@ -739,6 +746,9 @@ typedef struct pdp_dib DIB;
 #define INT_RS          (1u << INT_V_RS)
 #define INT_UCA         (1u << INT_V_UCA)
 #define INT_RPB         (1u << INT_V_RPB)
+#define INT_CH          (1u << INT_V_CH)
+#define INT_DHRX        (1u << INT_V_DHRX)
+#define INT_DHTX        (1u << INT_V_DHTX)
 #define INT_PIR4        (1u << INT_V_PIR4)
 #define INT_TTI         (1u << INT_V_TTI)
 #define INT_TTO         (1u << INT_V_TTO)
@@ -755,7 +765,6 @@ typedef struct pdp_dib DIB;
 #define INT_PIR3        (1u << INT_V_PIR3)
 #define INT_PIR2        (1u << INT_V_PIR2)
 #define INT_PIR1        (1u << INT_V_PIR1)
-#define INT_CH          (1u << INT_V_CH)
 
 #define INT_INTERNAL7   (INT_PIR7)
 #define INT_INTERNAL6   (INT_PIR6 | INT_CLK)
@@ -792,6 +801,8 @@ typedef struct pdp_dib DIB;
 #define IPL_UCA         5
 #define IPL_RPB         5
 #define IPL_CH          5
+#define IPL_DHRX        5
+#define IPL_DHTX        5
 #define IPL_PTR         4
 #define IPL_PTP         4
 #define IPL_TTI         4

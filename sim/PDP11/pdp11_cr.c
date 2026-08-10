@@ -1,6 +1,6 @@
 /* pdp11_cr.c: CR/CM/CD-11/CD20 card reader simulator
 
-   Copyright (c) 2005-2017, John A. Dundas III
+   Copyright (c) 2005-2026, John A. Dundas III
    Portions derived from work by Douglas W. Jones, jones@cs.uiowa.edu
    Portions derived from work by Robert M Supnik
 
@@ -100,6 +100,7 @@
     ECOs (at least) for Data Buffer status and augmented image mode.
 
   Revision History:
+   18-May-26    RMS     Fixed numeric assignment to t_bool variable
    19-Jan-17    RMS     CR11 is BR6, CD11 is BR4
    14-Mar-16    RMS     Added UC15 support (CR11 only)
    30-Mar-15    RMS     Backported from GitHub master; removed extended
@@ -1749,7 +1750,7 @@ t_stat cr_set_eof (    UNIT    *uptr,
 {
     if (DEBUG_PRS (cr_dev))
         fprintf (sim_deb, "set_eof\n");
-    eofPending = 1;
+    eofPending = TRUE;
 
     return (SCPE_OK);
 }

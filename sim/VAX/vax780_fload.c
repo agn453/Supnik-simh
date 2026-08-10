@@ -1,6 +1,6 @@
 /* vax780_fload.c: VAX780 FLOAD command
 
-   Copyright (c) 2006-2008, Robert M Supnik
+   Copyright (c) 2006-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -38,6 +38,7 @@
 
    Thanks to Phil Budne for the original adaptation of RT11 to SimH.
 
+   21-May-26    RMS     Fixed rtfile_read to be t_bool not t_stat (Mark Pizzolato)
    28-May-08    RMS     Inlined physical memory routines
 */
 
@@ -208,7 +209,7 @@ return 0;
 
 /* Read blocks */
 
-t_stat rtfile_read (uint32 block, uint32 count, uint16 *buffer)
+t_bool rtfile_read (uint32 block, uint32 count, uint16 *buffer)
 {
 uint32 i, j;
 uint32 pos;

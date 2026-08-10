@@ -251,9 +251,10 @@ t_stat cr_svc (UNIT *uptr)
         }
     }
     if (cmd & 0x04) {                               /* mode?   */
-        c = (char) hol_to_ebcdic[cr_buffer[cr_bptr]]; /* automatic  */
         int i = 0;                                  /* invalid punches? */
-        int n = cr_buffer[cr_bptr++] & 0x1fc;
+        int n;
+        c = (char) hol_to_ebcdic[cr_buffer[cr_bptr]]; /* automatic  */
+        n = cr_buffer[cr_bptr++] & 0x1fc;
         while (n) {                                 /* Kerninghams bit count alg */
             n &= (n-1);                             /* count bits in row 1-7 */
             i++;
@@ -368,9 +369,10 @@ t_stat cr_chan_err (uint32 st)
 t_stat cr_reset (DEVICE *dptr)
 {
     if (!cr_ebcdic_init) {                          /* initialize translate table */
-        for (int i = 0; i < 4096; i++)
+        int i;
+        for (i = 0; i < 4096; i++)
             hol_to_ebcdic[i] = 0x100;               /* a la sim_card */
-        for (int i = 0; i < 256; i++) {
+        for (i = 0; i < 256; i++) {
             uint16     temp = ebcdic_to_hol[i];
             if (hol_to_ebcdic[temp] != 0x100) {
                 fprintf(stderr, "Translation error %02x is %03x and %03x\n",

@@ -1,6 +1,6 @@
 /* sim_defs.h: simulator definitions
 
-   Copyright (c) 1993-2024, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   12-Feb-26    RMS     More V4 compatibility hacks
    05-May-24    RMS     Added UNIT_V4XTND
    06-Jun-22    RMS     Deprecated UNIT_TEXT, deleted UNIT_RAW
    10-Mar-22    JDB     Modified REG macros to fix "stringizing" problem
@@ -546,6 +547,7 @@ struct sim_brktab {
 struct sim_debtab {
     char                *name;                          /* control name */
     uint32              mask;                           /* control bit */
+    const char          *desc;                          /* V4 compatibility */
     };
 
 #define DEBUG_PRS(d)    (sim_deb && d.dctrl)
@@ -749,5 +751,7 @@ typedef struct sim_debtab DEBTAB;
 #define sim_os_set_thread_priority(prio)
 
 #define BRK_TYP_DYN_STEPOVER 0
+#define MTAB_VALR           0
+#define MTAB_VALO           0
 
 #endif

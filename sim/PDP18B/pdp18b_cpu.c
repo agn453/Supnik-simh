@@ -1,6 +1,6 @@
 /* pdp18b_cpu.c: 18b PDP CPU simulator
 
-   Copyright (c) 1993-2016, Robert M Supnik
+   Copyright (c) 1993-2024, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    cpu          PDP-4/7/9/15 central processor
 
+   11-Aug-24    RMS     Added DC01EB support
    10-Mar-16    RMS     Added 3-cycle databreak set/show routines
    07-Mar-16    RMS     Revised to allocate memory dynamically
    28-Mar-15    RMS     Revised to use sim_printf
@@ -440,7 +441,8 @@ int32 api_vec[API_HLVL][32] = {
  { ACH_PWRFL },                                         /* API 0 */
  { ACH_DTA, ACH_MTA, ACH_DRM, ACH_RF, ACH_RP, ACH_RB }, /* API 1 */
  { ACH_PTR, ACH_LPT, ACH_LPT },                         /* API 2 */
- { ACH_CLK, ACH_TTI1, ACH_TTO1 }                        /* API 3 */
+ { ACH_CLK, ACH_TTI1, ACH_TTO1,
+   ACH_DC0, ACH_DC1, ACH_DC2, ACH_DC3 }                 /* API 3 */
  };
 
 /* CPU data structures

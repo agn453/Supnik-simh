@@ -1,6 +1,6 @@
 /* pdp10_ksio.c: PDP-10 KS10 I/O subsystem simulator
 
-   Copyright (c) 1993-2017, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,7 +25,8 @@
 
    uba          Unibus adapters
 
-   7-Mar-17     RMS     Added BR level to vector display
+   21-May-25    RMS     Fixed build_dib_tab to be t_stat not t_bool
+   07-Mar-17    RMS     Added BR level to vector display
    27-May-13    RMS     Fixed bugs in Unibus adapter code
    22-Sep-05    RMS     Fixed declarations (from Sterling Garwood)
    25-Jan-04    RMS     Added stub floating address routine
@@ -1868,7 +1869,7 @@ return;
 
 /* Build dib_tab from device list */
 
-t_bool build_dib_tab (void)
+t_stat build_dib_tab (void)
 {
 int32 i, j, k;
 DEVICE *dptr;

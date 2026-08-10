@@ -32,7 +32,7 @@
    15-Aug-22    RMS     Fixed inconsistent SIM_HAVE_DLOPEN naming (Walter Mueller)
    06-Mar-22    RMS     Removed UNIT_RAW support
    21-Oct-21    RMS     Fixed bug in byte deposits if aincr > 1
-   20=Sep-21    RMS     Fixed bug in nested DO recognition (per Mark Pizzolato)
+   20-Sep-21    RMS     Fixed bug in nested DO recognition (per Mark Pizzolato)
    15-Apr-21    RMS     Changed RUN to store new PC value both before RESET
                         (former behavior) and after (per Mark Pizzolato)
    18-Mar-21    JDB     Revised "attach_unit" and "detach_unit" for pipe support
@@ -3216,7 +3216,7 @@ mask = (t_addr) width_mask[dptr->awidth];
 if ((low > mask) || (high > mask) || (low > high))
     return SCPE_ARG;
 dfltinc =  parse_sym ("0", 0, uptr, sim_eval, sim_switches);
-if (dfltinc > 0)                                         /* parse_sym doing nums? */
+if (dfltinc > 0)                                        /* parse_sym doing nums? */
     dfltinc = 1 - dptr->aincr;                          /* no, use std dflt incr */
 for (i = low; i <= high; ) {                            /* all paths must incr!! */
     reason = get_aval (i, dptr, uptr);                  /* get data */
@@ -3428,7 +3428,7 @@ ptr = ((char *) rptr->loc) + (idx * rptr->stride);      /* point at the starting
 
 if (rptr->size == sizeof (uint8))                       /* store the value */
     *((uint8 *) ptr) =                                  /*   using a size */
-      (uint8) ((*((uint8 *) ptr) & mask) | val);          /*     appropriate to */
+      (uint8) ((*((uint8 *) ptr) & mask) | val);        /*     appropriate to */
                                                         /*       the size of */
 else if (rptr->size == sizeof (uint16))                 /*         the underlying type */
     *((uint16 *) ptr) =

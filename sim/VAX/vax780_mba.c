@@ -1,6 +1,6 @@
 /* vax780_mba.c: VAX 11/780 Massbus adapter
 
-   Copyright (c) 2004-2012, Robert M Supnik
+   Copyright (c) 2004-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -25,6 +25,7 @@
 
    mba0, mba1           RH780 Massbus adapter
 
+   18-May-26    RMS     Fixed incomplete logical expressions
    08-Dec-12    RMS     Block interrupt if data transfer in progress (Mark Pizzolato)
    28-May-08    RMS     Inlined physical memory routines
 */
@@ -436,9 +437,9 @@ switch (rtype) {                                        /* case on type */
             return SCPE_NXM;
         drv = MBA_EXTDRV (pa);                          /* get dev num */
         ofs = MBA_EXTOFS (pa);                          /* get reg offs */
-        cs1dt = (ofs == MBA_CS1) && (val & CSR_GO) &&   /* starting xfr? */
+        cs1dt = (ofs == MBA_CS1) && ((val & CSR_GO) != 0) &&   /* starting xfr? */
            ((val & MBA_CS1_WR) >= MBA_CS1_DT);
-        if (cs1dt && (mba_sr[mb] & MBASR_DTBUSY)) {     /* xfr while busy? */
+        if (cs1dt && ((mba_sr[mb] & MBASR_DTBUSY) != 0)) { /* xfr while busy? */
             mba_upd_sr (MBASR_PGE, 0, mb);              /* prog error */
             break;
             }

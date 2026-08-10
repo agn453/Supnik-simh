@@ -216,10 +216,11 @@ t_stat cp_svc(UNIT *uptr) {
                 if (uptr->UCMD & 0x4) {             /* mode?  */
                     i = 0;                          /* ebcdic */
                     while (i < LEN) {
+                        unsigned short int col;
                         st = chan_RdMemB(dva,&c);
                         if (CHS_IFERR (st))         /* channel error? */
                             return cp_chan_err (st);
-                        unsigned short int col = ebcdic_to_hol[c]; /* byte and 1/2  */
+                        col = ebcdic_to_hol[c]; /* byte and 1/2  */
                         cp_buffer[i++] = (col >> 4) & 0xff;
                         cp_buffer[i] = (col & 0x0f) << 4;
                         if (st == CHS_ZBC)          /* end request size? */

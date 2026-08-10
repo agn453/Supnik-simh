@@ -1,6 +1,6 @@
 /* sim_rev.h: simulator revisions and current rev level
 
-   Copyright (c) 1993-2023, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -39,7 +39,11 @@
 
 patch   date            module(s) and fix(es)
 
-  6     17-Aug-2024     descrip.mms: Ethernet support, fix SDS build,
+  6     30-Mar-2026     GRI: additional loader formats
+                        PDP11: added DH11
+                        H316, 1401, PDP10, PDP11, PDP18B, Sigma: bug fixes
+
+  5-agn 17-Aug-2024     descrip.mms: Ethernet support, fix SDS build,
                         and add Sigma, SCP: build on OpenVMS VAX,
                         PDP11: Chaosnet fix, and Pcap-VMS (Tony Nicholson)
 

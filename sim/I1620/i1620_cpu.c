@@ -1,6 +1,6 @@
 /* i1620_cpu.c: IBM 1620 CPU simulator
 
-   Copyright (c) 2002-2021, Robert M. Supnik
+   Copyright (c) 2002-2026, Robert M. Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
    This CPU module incorporates code and comments from the 1620 simulator by
    Geoff Kuenning, with his permission.
 
+   18-May-26    RMS     Replaced one_time reset with test for powerup
    01-Feb-21    RMS     Added max value to address registers
    05-Jun-18    RMS     Fixed bug in select index A (COVERITY)
    23-Jun-17    RMS     BS should not enable indexing unless configured
@@ -167,6 +168,8 @@ int32 hst_p = 0;                                        /* history pointer */
 int32 hst_lnt = 0;                                      /* history length */
 InstHistory *hst = NULL;                                /* instruction history */
 uint8 ind[NUM_IND] = { 0 };                             /* indicators */
+
+extern int32 sim_switches;
 
 t_stat cpu_ex (t_value *vptr, t_addr addr, UNIT *uptr, int32 sw);
 t_stat cpu_dep (t_value val, t_addr addr, UNIT *uptr, int32 sw);
@@ -2203,7 +2206,7 @@ return SCPE_OK;
 t_stat cpu_reset (DEVICE *dptr)
 {
 int32 i;
-static t_bool one_time = TRUE;
+t_bool one_time = (sim_switches & SWMASK ('P')) != 0;
 
 PR1 = IR2 = 1;                                          /* invalidate PR1,IR2 */
 ind[0] = 0;
@@ -2225,7 +2228,6 @@ if (one_time) {                                         /* set default tables */
     cpu_set_table (&cpu_unit, 1, NULL, NULL);
     actual_PC = saved_PC = 0;                           /* sync PCs */
     }
-one_time = FALSE;
 return SCPE_OK;
 }
 

@@ -3409,8 +3409,8 @@ for (i = 1, j = 0, more = FALSE; i <= numspec; i++) {   /* loop thru specs */
         else fputs ("         ", st);
         j = j + 2;
         break;
-        }                                       /* end case */
-    }                                           /* end for */
+        }                                               /* end case */
+    }                                                   /* end for */
 return more;
 }
 

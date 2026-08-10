@@ -1,6 +1,6 @@
 /* pdp10_sys.c: PDP-10 simulator interface
 
-   Copyright (c) 1993-2024, Robert M Supnik
+   Copyright (c) 1993-2026, Robert M Supnik
 
    Permission is hereby granted, free of charge, to any person obtaining a
    copy of this software and associated documentation files (the "Software"),
@@ -23,6 +23,7 @@
    used in advertising or otherwise to promote the sale, use or other dealings
    in this Software without prior written authorization from Robert M Supnik.
 
+   16-Apr-26    RMS     Parsing routine crashes when called with "0" (Mark Pizzolato)
    05-May-24    RMS     Merged CH11 (Lars Brinkhoff)
    09-Mar-17    RMS     Added mask on EXE repeat count (COVERITY)
                         Fixed word count test in EXE loader (COVERITY)
