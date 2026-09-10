@@ -26,6 +26,9 @@ Jul 1, 2026 patch to add a 1000 instruction delay on a type 647 line
 printer initialization before the LPCB is actioned (enough time
 for the diagnostic to progress).
 
+The makefile for the pdp11 target was missing the pdp11_dh.c source
+file for the DH11 asynchronous serial line interface.
+
 And finally, I have merged all of Bob Supnik's updates for V3.2-6 from
 https://simh.trailing-edge.com/sources/current including updates to
 
@@ -49,4 +52,4 @@ https://vms.process.com/scripts/fileserv/fileserv.com?MMK
 * VSI OpenVMS x86_64 V9.2-2 with VSI C x86-64 V7.5-009 (GEM 50XBR)
 
 
-Tony Nicholson 10-Aug-2026
+Tony Nicholson 10-Sep-2026
